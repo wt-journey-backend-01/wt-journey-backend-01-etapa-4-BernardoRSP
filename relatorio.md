@@ -1,167 +1,162 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 7 créditos restantes para usar o sistema de feedback AI.
+Você tem 6 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para BernardoRSP:
 
-Nota final: **34.5/100**
+Nota final: **52.0/100**
 
 ```markdown
-# Olá, BernardoRSP! 👋🚀
+# Olá BernardoRSP! 👋🚀
 
-Primeiramente, parabéns pelo esforço e dedicação até aqui! Você já tem uma base muito boa montada, com uma estrutura clara, uso correto do Knex, organização dos controllers, repositories e rotas, além da implementação dos principais endpoints para agentes, casos e autenticação. Isso é essencial para construir uma API robusta e escalável! 🎉
-
-Além disso, você conseguiu passar vários testes importantes, incluindo a criação e login de usuários, proteção das rotas com JWT, logout, exclusão de usuários, e validações básicas de autenticação. Isso mostra que você compreendeu bem os conceitos fundamentais da segurança com JWT e hashing de senha. Mandou bem! 👏
+Primeiramente, parabéns pelo empenho e pelo progresso que você já conquistou nessa etapa tão importante de segurança e autenticação na sua API! 🎉👏
 
 ---
 
-## 🚦 Pontos Importantes que Precisam de Ajustes (Testes que Falharam)
+## 🎉 Pontos Positivos e Conquistas Bônus
 
-Os testes que falharam são majoritariamente relacionados à **validação dos dados de cadastro do usuário** (usuário com nome vazio, email vazio, senha inválida, etc) e também alguns testes de filtragem e busca avançada (bônus). Vamos destrinchar os principais problemas para você entender o que está acontecendo e como corrigir:
+- Sua implementação da **autenticação JWT** está funcionando bem! Os testes de criação, login, logout e deleção de usuários passaram com sucesso, mostrando que você entendeu bem os conceitos de hashing com bcrypt, validação de senha, geração e verificação de tokens JWT.
+- O middleware de autenticação (`authMiddleware.js`) está corretamente configurado para proteger as rotas sensíveis, garantindo o status 401 quando o token está ausente ou inválido.
+- A organização geral do seu projeto está muito boa e segue a arquitetura MVC, com controllers, repositories, rotas, middleware e utils bem separados.
+- Você também conseguiu implementar algumas funcionalidades extras relacionadas a autenticação que são bônus, como logout e exclusão de usuários.
+
+Isso é excelente! Continue nesse ritmo! 💪
 
 ---
 
-### 1. Falhas nas Validações de Cadastro de Usuário (400 Bad Request)
+## 🚨 Análise dos Testes que Falharam e Oportunidades de Melhoria
 
-**Testes que falharam:**
+Você teve uma série de testes base relacionados a **Agentes** e **Casos** que falharam. Vamos destrinchar os principais motivos e como corrigi-los.
 
-- USERS: Recebe erro 400 ao tentar criar um usuário com nome vazio
-- USERS: Recebe erro 400 ao tentar criar um usuário com email vazio / nulo
-- USERS: Recebe erro 400 ao tentar criar um usuário com senha curta, sem número, sem caractere especial, sem letra maiúscula, sem letras, senha nula
-- USERS: Recebe erro 400 ao tentar criar um usuário com campo faltante
+---
 
-**Análise da causa raiz:**
+### 1. Testes Falhando para CRUD de Agentes
 
-No seu `authController.js`, na função `registrarUsuario`, não há nenhuma validação explícita para os campos `nome`, `email` e `senha` antes de tentar criar o usuário:
+**Exemplos de testes que falharam:**
+
+- `AGENTS: Cria agentes corretamente com status code 201 e os dados inalterados do agente mais seu ID`
+- `AGENTS: Lista todos os agente corretamente com status code 200 e todos os dados de cada agente listados corretamente`
+- `AGENTS: Busca agente por ID corretamente com status code 200 e todos os dados do agente listados dentro de um objeto JSON`
+- `AGENTS: Atualiza dados do agente com por completo (com PUT) corretamente com status code 200 e dados atualizados do agente listados num objeto JSON`
+- `AGENTS: Atualiza dados do agente com por completo (com PATCH) corretamente com status code 200 e dados atualizados do agente listados num objeto JSON`
+- `AGENTS: Deleta dados de agente corretamente com status code 204 e corpo vazio`
+- Vários testes de validação de erros 400 e 404 relacionados a agentes.
+
+---
+
+### Análise Raiz: Por que esses testes falharam?
+
+Olhando seu código em `agentesController.js` e `agentesRepository.js`, a maioria das operações parece correta. Porém, um ponto crucial está no método de deletar agentes:
 
 ```js
-async function registrarUsuario(req, res) {
+// agentesRepository.js - deletar
+async function deletar(id) {
+  const deletado = await db("agentes")
+    .where({ id: Number(id) })
+    .del();
+  return deletado;
+}
+```
+
+E no controller:
+
+```js
+async function deletarAgente(req, res) {
+  // ...
+  const sucesso = await agentesRepository.deletar(id);
+  if (!sucesso) {
+    return res.status(404).json({ status: 404, mensagem: "Agente não encontrado" });
+  }
+  res.status(204).send();
+}
+```
+
+**Motivo provável do erro:**  
+O método `.del()` do Knex retorna o número de linhas afetadas (um número). Se nenhuma linha for deletada, retorna 0 (falsy). Seu código está correto para isso.
+
+No entanto, um problema comum que pode estar causando falha nos testes é o formato do ID passado para o banco. Você está validando o ID com regex `/^\d+$/` e convertendo para `Number(id)`, o que é correto.
+
+Então, o problema pode estar em outro lugar:
+
+- **Formato da data `dataDeIncorporacao` ao criar ou atualizar agentes:**  
+No seu controller, você está validando o formato da data e convertendo para ISO string na resposta:
+
+```js
+agenteCriado.dataDeIncorporacao = new Date(agenteCriado.dataDeIncorporacao).toISOString().split("T")[0];
+```
+
+Porém, isso só é feito no `adicionarAgente` e `atualizarAgente`, não no `atualizarAgenteParcial`.
+
+Se os testes esperam a data no formato `YYYY-MM-DD` para todas as respostas, isso pode causar falha na comparação dos dados.
+
+**Solução sugerida:**  
+Padronize o formato da data em todas as respostas que retornam agentes, inclusive na atualização parcial e na listagem.
+
+Exemplo para `listarAgentes`:
+
+```js
+async function listarAgentes(req, res) {
   try {
-    const { nome, email, senha } = req.body;
-
-    if (await usuariosRepository.encontrar(email)) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: { email: "O usuário já está cadastrado" } });
-    }
-
-    const hashed = await bcrypt.hash(senha, 10);
-
-    const novoUsuario = { nome, email, senha: hashed };
-    const [usuarioCriado] = await usuariosRepository.registrar(novoUsuario);
-    return res.status(201).json(usuarioCriado);
+    const agentes = await agentesRepository.listar();
+    const agentesFormatados = agentes.map((agente) => ({
+      ...agente,
+      dataDeIncorporacao: new Date(agente.dataDeIncorporacao).toISOString().split("T")[0],
+    }));
+    res.status(200).json(agentesFormatados);
   } catch (error) {
-    console.log("Erro referente a: registrarUsuarios\n");
-    console.log(error);
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
+    //...
   }
 }
 ```
 
-Você só verifica se o email já está cadastrado, mas não verifica se os campos são nulos, vazios ou se a senha atende ao regex que você definiu (`testeSenha`). Isso faz com que, quando um campo obrigatório está ausente ou inválido, o sistema aceite e tente criar o usuário, o que quebra os testes que esperam erro 400.
-
-**Como corrigir?**
-
-Você precisa adicionar validações explícitas antes de tentar criar o usuário, por exemplo:
-
-```js
-if (!nome || nome.trim() === "") {
-  erros.nome = "O nome é obrigatório";
-}
-if (!email || email.trim() === "") {
-  erros.email = "O email é obrigatório";
-}
-if (!senha) {
-  erros.senha = "A senha é obrigatória";
-} else if (!testeSenha.test(senha)) {
-  erros.senha = "A senha deve ter no mínimo 8 caracteres, com pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial";
-}
-
-if (Object.keys(erros).length > 0) {
-  return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros });
-}
-```
-
-Assim, você garante que o cadastro só prossegue se os dados forem válidos.
+Faça algo semelhante para os métodos que retornam um agente único.
 
 ---
 
-### 2. Erro de Digitação e Retorno Incorreto no `deletarUsuario`
+### 2. Testes Falhando para CRUD de Casos
 
-No método `deletarUsuario` do `authController.js`, você tem:
+Exemplos:
 
-```js
-const usuarioDeletado = usuariosRepository.deletar(id);
-if (!usuarioDeletado) {
-  return res.status(404).json({ statu: 404, message: "Usuário não encontrado" });
-}
-```
-
-Aqui há dois problemas:
-
-- Você esqueceu o `await` na chamada `usuariosRepository.deletar(id)`, que é uma função `async`. Isso faz com que `usuarioDeletado` seja uma Promise, que sempre será truthy, e a checagem não funciona como esperado.
-- Há um erro de digitação: `statu` (deveria ser `status`) e `message` (deveria ser `mensagem` para manter padrão).
-
-**Correção sugerida:**
-
-```js
-const usuarioDeletado = await usuariosRepository.deletar(id);
-if (!usuarioDeletado) {
-  return res.status(404).json({ status: 404, mensagem: "Usuário não encontrado" });
-}
-```
+- `CASES: Cria casos corretamente com status code 201 e retorna dados inalterados do caso criado mais seu ID`
+- `CASES: Lista todos os casos corretamente com status code 200 e retorna lista com todos os dados de todos os casos`
+- `CASES: Busca caso por ID corretamente com status code 200 e retorna dados do caso`
+- `CASES: Atualiza dados de um caso com por completo (com PUT) corretamente com status code 200 e retorna dados atualizados`
+- `CASES: Atualiza dados de um caso parcialmente (com PATCH) corretamente com status code 200 e retorna dados atualizados`
+- `CASES: Deleta dados de um caso corretamente com status code 204 e retorna corpo vazio`
+- Testes de validação 400 e 404 para casos.
 
 ---
 
-### 3. Resposta do Login com Nome da Propriedade do Token Errada
+### Análise Raiz:
 
-No método `logarUsuario`, você gera o token JWT e retorna:
+Olhando seu `casosController.js` e `casosRepository.js`, o fluxo parece correto.
 
-```js
-return res.status(200).json({ access_token: token });
-```
+Porém, um ponto importante:
 
-Porém, no enunciado do desafio, o token deve ser retornado na propriedade `acess_token` (sem o "c" duplo):
+- Na validação do campo `status`, você permite apenas `"aberto"` ou `"solucionado"`, o que está certo.
+- Na criação e atualização, você verifica se o `agente_id` existe, o que é ótimo.
+- Você está retornando o objeto criado/atualizado diretamente.
 
-```json
-{
-  "acess_token": "token aqui"
-}
-```
+**Possível motivo de falha:**  
+A resposta do endpoint deve retornar o objeto exatamente como está no banco, com os campos corretos e sem alterações inesperadas.
 
-Esse detalhe é importante para passar os testes que validam a resposta do login. Então, altere para:
+Verifique se não está alterando a resposta de forma que os testes não esperam (como converter datas, ou alterar nomes de campos).
 
-```js
-return res.status(200).json({ acess_token: token });
-```
+Outra possível causa:  
+Na migration, o campo `agente_id` permite `nullable()`, mas no código você obriga que seja obrigatório na criação. Isso pode não ser um problema, mas importante garantir que o dado enviado é coerente.
 
 ---
 
-### 4. Mensagem de Erro com Campo Incorreto no Login
+### 3. Outros Pontos Importantes
 
-Ainda no `logarUsuario`, quando a senha é inválida, você retorna:
-
-```js
-if (!senhaValida) return res.status(401).json({ status: 401, mensage: "Senha e/ou E-mail inválidos" });
-```
-
-Note que há um erro de digitação em `mensage` (deveria ser `mensagem`). Isso pode causar falha nos testes que verificam a estrutura da resposta.
-
-Corrija para:
-
-```js
-if (!senhaValida) return res.status(401).json({ status: 401, mensagem: "Senha e/ou E-mail inválidos" });
-```
-
----
-
-### 5. Middleware de Autenticação - Erro de Digitação no JSON de Erro
-
-No seu `authMiddleware.js`, no catch:
+- **Middleware de autenticação:**  
+No seu middleware você tem:
 
 ```js
 return res.status(401).json({ staus: 401, mensagem: "Token Inválido" });
 ```
 
-Você escreveu `staus` ao invés de `status`. Isso pode causar problemas na interpretação da resposta pelo cliente ou testes.
+Note que o campo `staus` está com typo, deveria ser `status`. Isso pode causar falha em testes que verificam o formato da resposta.
 
 Corrija para:
 
@@ -169,105 +164,117 @@ Corrija para:
 return res.status(401).json({ status: 401, mensagem: "Token Inválido" });
 ```
 
----
+- **Na rota de login (`logarUsuario`):**
 
-### 6. Falta de Implementação do Logout
-
-No `authController.js`, o método `deslogarUsuario` está vazio:
+Você retorna o token com chave `access_token` no JSON, mas no seu código:
 
 ```js
-async function deslogarUsuario(req, res) {
-  try {
-  } catch (erro) {}
+return res.status(200).json({ access_token: token });
+```
+
+No enunciado, o exemplo usa `acess_token` (com 's' em vez de 'ss'):
+
+```json
+{
+  "acess_token": "token aqui"
 }
 ```
 
-Para passar os testes que verificam logout, você precisa implementar alguma lógica que invalide o token do usuário. Como o JWT é stateless, a maneira comum é implementar uma blacklist ou simplesmente responder com sucesso para o logout (se o token for gerenciado no cliente).
-
-Se preferir, pode responder com status 204 sem corpo, por exemplo:
+Se os testes esperam exatamente essa chave, você deve alinhar para:
 
 ```js
-async function deslogarUsuario(req, res) {
-  try {
-    // Como JWT é stateless, apenas responder sucesso
-    return res.status(204).send();
-  } catch (error) {
-    console.log("Erro referente a: deslogarUsuario\n", error);
-    return res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
-  }
-}
+return res.status(200).json({ acess_token: token });
+```
+
+Isso pode causar falha no teste de login.
+
+- **No controller de login, você tem um pequeno erro de digitação na propriedade do JSON de erro:**
+
+```js
+return res.status(401).json({ status: 401, mensage: "Senha e/ou E-mail inválidos" });
+```
+
+`mensage` está escrito errado, o correto é `mensagem`.
+
+Corrija para:
+
+```js
+return res.status(401).json({ status: 401, mensagem: "Senha e/ou E-mail inválidos" });
 ```
 
 ---
 
-### 7. Falta de Validação da Senha no Registro
+### 4. Estrutura de Diretórios e Arquivos
 
-Você definiu o regex `testeSenha` no `authController.js`, mas não o utilizou para validar a senha antes do hash. Isso faz com que senhas inválidas (curtas, sem caracteres especiais, etc) sejam aceitas.
+Sua estrutura está muito próxima da esperada, parabéns! 👏
 
-É fundamental validar a senha para garantir a segurança e passar os testes.
+Apenas certifique-se que:
 
----
-
-### 8. Estrutura do Projeto e Documentação
-
-Sua estrutura de pastas está correta e bem organizada, parabéns! Isso ajuda muito na manutenção e escalabilidade do código.
-
-O arquivo `INSTRUCTIONS.md` está bem detalhado para configuração do banco, mas está faltando a documentação da autenticação, como o envio do token JWT no header `Authorization`, exemplos de registro e login, e o fluxo de autenticação esperado, conforme pedido no desafio.
-
-Recomendo que você adicione essa documentação para deixar o projeto mais completo e facilitar o uso da API por outros desenvolvedores.
+- O arquivo `.env` está presente e configurado com `JWT_SECRET`, `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB`.
+- A migration para a tabela `usuarios` está criada e executada (vi que está no seu migration, ótimo).
+- O arquivo `authRoutes.js` está na pasta `routes/` (confirme se está com o nome correto e exportando as rotas).
+- O middleware `authMiddleware.js` está na pasta `middlewares/` e aplicado corretamente nas rotas `/agentes` e `/casos` (você fez isso no `server.js` corretamente).
+- O arquivo `INSTRUCTIONS.md` está atualizado com as informações de registro, login e uso do token JWT.
 
 ---
 
-### 9. Bônus: Endpoints de Filtragem e `/usuarios/me`
+## 💡 Dicas e Recomendações para Aprimorar
 
-Os testes bônus relacionados a filtragens e ao endpoint `/usuarios/me` falharam. Isso indica que esses recursos ainda não foram implementados.
+- **Padronize o formato das datas em todas as respostas da API**, para evitar divergência nos testes e garantir uma boa experiência para quem consumir a API.
 
-Se quiser melhorar sua nota, recomendo implementar esses filtros para casos e agentes, e criar o endpoint para retornar dados do usuário autenticado, usando o `req.user` do middleware de autenticação.
+- **Corrija os pequenos erros de digitação** em chaves JSON e mensagens de erro (`status` e `mensagem`).
 
----
+- **Alinhe os nomes das propriedades no JSON de resposta** com o que os testes esperam, como o `acess_token` (com um 's') no login.
 
-## 🎯 Recomendações e Recursos para Você Aprimorar Seu Projeto
+- **Garanta que o middleware de autenticação retorne mensagens consistentes e com o formato correto.**
 
-- Para entender melhor como fazer validações robustas no cadastro, recomendo fortemente revisar o vídeo **[Authenticação - Conceitos Básicos](https://www.youtube.com/watch?v=Q4LQOfYwujk)** — *esse vídeo, feito pelos meus criadores, fala muito bem sobre como validar dados de usuários e proteger sua API*.
-
-- Para corrigir o uso de JWT, geração e verificação de tokens, dê uma olhada neste vídeo prático: **[JWT na prática](https://www.youtube.com/watch?v=keS0JWOypIU)**.
-
-- Como você usa bcrypt para hash de senha, vale a pena assistir esse conteúdo para entender o uso correto: **[bcrypt e JWT juntos](https://www.youtube.com/watch?v=L04Ln97AwoY)**.
-
-- Se quiser se aprofundar em organização de projetos Node.js com arquitetura MVC (Model-View-Controller), que você já está no caminho certo, recomendo este vídeo: **[Arquitetura MVC em Node.js](https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s)**.
+- **Verifique se todas as validações de entrada estão coerentes e completas**, evitando campos extras ou faltantes.
 
 ---
 
-## 📝 Resumo dos Principais Pontos para Melhorar
+## 📚 Recursos de Aprendizado Recomendados
 
-- **Adicionar validações completas para os campos `nome`, `email` e `senha` no registro de usuário**, incluindo regex para senha forte.
+Para te ajudar a entender melhor os pontos acima e aprimorar sua implementação, recomendo fortemente os seguintes vídeos:
 
-- **Corrigir erros de digitação em chaves JSON** (`status`, `mensagem`, `acess_token`).
+- Sobre **Autenticação JWT e BCrypt**:  
+  [Esse vídeo, feito pelos meus criadores, fala muito bem sobre autenticação, JWT e segurança em APIs Node.js](https://www.youtube.com/watch?v=Q4LQOfYwujk)
 
-- **Adicionar `await` nas chamadas async**, especialmente no método de deletar usuário.
+- Para entender melhor o uso prático de JWT:  
+  [JWT na prática com Node.js](https://www.youtube.com/watch?v=keS0JWOypIU)
 
-- **Implementar a função de logout** para responder adequadamente.
+- Para compreender hashing de senhas e segurança:  
+  [Como usar BCrypt e JWT juntos](https://www.youtube.com/watch?v=L04Ln97AwoY)
 
-- **Corrigir o nome da propriedade do token JWT no login para `acess_token` conforme esperado**.
-
-- **Documentar no INSTRUCTIONS.md o fluxo de autenticação e exemplos de uso do token JWT no header Authorization**.
-
-- **Considerar implementar os bônus para melhorar sua nota**, como filtros nos endpoints e o `/usuarios/me`.
-
----
-
-## 💪 Finalizando
-
-Bernardo, você já tem uma base sólida e está no caminho certo para entregar uma API segura e funcional! Com esses ajustes nas validações e pequenos detalhes que comentei, sua aplicação vai ficar muito mais robusta e pronta para produção.
-
-Continue firme, pois cada correção que você fizer vai destravar seu aprendizado e abrir portas para projetos ainda mais complexos. Estou aqui torcendo pelo seu sucesso! 🚀✨
+- Caso queira revisar a estrutura MVC e organização do projeto:  
+  [Arquitetura MVC para Node.js](https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s)
 
 ---
 
-Se precisar de ajuda para entender qualquer ponto, me chama! Vamos juntos nessa jornada! 😉
+## 📝 Resumo Rápido dos Pontos para Melhorar
 
-Um abraço e bons códigos! 👨‍💻👩‍💻
+- Padronizar o formato da data `dataDeIncorporacao` em todas as respostas (GET, POST, PUT, PATCH).
+- Corrigir erros de digitação nas respostas JSON (`status`, `mensagem`, `mensage`).
+- Ajustar chave do token JWT retornado para `acess_token` conforme esperado pelos testes.
+- Garantir que o middleware de autenticação retorne mensagens consistentes e corretas.
+- Revisar validações para evitar campos extras ou falta de campos obrigatórios.
+- Confirmar que o `.env` está configurado com a variável `JWT_SECRET`.
+- Testar as rotas protegidas sem token para garantir status 401 correto.
+
+---
+
+## Bernardo, você está no caminho certo! 🚀
+
+Sei que essas correções podem parecer detalhes, mas são justamente esses pequenos ajustes que transformam uma API funcional em uma API profissional, segura e confiável — exatamente o que o desafio pede!  
+
+Continue focado, revise com calma os pontos que destaquei, e logo sua API estará 100% pronta para produção! 💪🔥
+
+Se precisar, volte aos vídeos indicados para reforçar os conceitos de autenticação e organização do código.
+
+Qualquer dúvida, estou aqui para te ajudar! 😉
+
+Boa codada e até a próxima revisão! 👨‍💻✨
 ```
+
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
