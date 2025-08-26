@@ -13,7 +13,7 @@ function authMiddleware(req, res, next) {
 
     next();
   } catch (erro) {
-    return res.status(401).json({ staus: 401, messagem: "Token Inválido" });
+    return res.status(401).json({ status: 401, messagem: "Token Inválido" });
   }
 }
 
