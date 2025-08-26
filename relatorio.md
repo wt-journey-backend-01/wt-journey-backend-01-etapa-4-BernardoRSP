@@ -1,178 +1,150 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 6 créditos restantes para usar o sistema de feedback AI.
+Você tem 5 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para BernardoRSP:
 
 Nota final: **52.0/100**
 
-```markdown
-# Olá BernardoRSP! 👋🚀
+# Feedback para BernardoRSP 🚓✨
 
-Primeiramente, parabéns pelo empenho e pelo progresso que você já conquistou nessa etapa tão importante de segurança e autenticação na sua API! 🎉👏
+Olá Bernardo! Antes de mais nada, parabéns pelo esforço e dedicação em construir essa API completa com segurança, autenticação e autorização! 🎉🚀  
+Você conseguiu implementar funcionalidades essenciais como:
 
----
+- Registro e login de usuários com validação de senha forte e hashing via bcrypt.
+- Geração de JWT com expiração.
+- Middleware de autenticação para proteger rotas sensíveis.
+- Organização do projeto em MVC com controllers, repositories, rotas e middlewares.
+- Documentação Swagger configurada.
+- Uso correto do Knex para migrações, seeds e queries.
+- Passou todos os testes básicos da parte de usuários e autenticação! 👏
 
-## 🎉 Pontos Positivos e Conquistas Bônus
-
-- Sua implementação da **autenticação JWT** está funcionando bem! Os testes de criação, login, logout e deleção de usuários passaram com sucesso, mostrando que você entendeu bem os conceitos de hashing com bcrypt, validação de senha, geração e verificação de tokens JWT.
-- O middleware de autenticação (`authMiddleware.js`) está corretamente configurado para proteger as rotas sensíveis, garantindo o status 401 quando o token está ausente ou inválido.
-- A organização geral do seu projeto está muito boa e segue a arquitetura MVC, com controllers, repositories, rotas, middleware e utils bem separados.
-- Você também conseguiu implementar algumas funcionalidades extras relacionadas a autenticação que são bônus, como logout e exclusão de usuários.
-
-Isso é excelente! Continue nesse ritmo! 💪
-
----
-
-## 🚨 Análise dos Testes que Falharam e Oportunidades de Melhoria
-
-Você teve uma série de testes base relacionados a **Agentes** e **Casos** que falharam. Vamos destrinchar os principais motivos e como corrigi-los.
+Além disso, você conseguiu passar alguns testes bônus relacionados à filtragem simples e autenticação, o que mostra que seu código já tem uma boa base e está no caminho certo para se tornar uma aplicação robusta.
 
 ---
 
-### 1. Testes Falhando para CRUD de Agentes
+# 🚨 Pontos que precisam de atenção e análise detalhada
 
-**Exemplos de testes que falharam:**
-
-- `AGENTS: Cria agentes corretamente com status code 201 e os dados inalterados do agente mais seu ID`
-- `AGENTS: Lista todos os agente corretamente com status code 200 e todos os dados de cada agente listados corretamente`
-- `AGENTS: Busca agente por ID corretamente com status code 200 e todos os dados do agente listados dentro de um objeto JSON`
-- `AGENTS: Atualiza dados do agente com por completo (com PUT) corretamente com status code 200 e dados atualizados do agente listados num objeto JSON`
-- `AGENTS: Atualiza dados do agente com por completo (com PATCH) corretamente com status code 200 e dados atualizados do agente listados num objeto JSON`
-- `AGENTS: Deleta dados de agente corretamente com status code 204 e corpo vazio`
-- Vários testes de validação de erros 400 e 404 relacionados a agentes.
+Apesar dos acertos, sua nota final ficou em 52/100 porque vários testes base relacionados a agentes e casos falharam. Vamos entender o que está acontecendo para que você possa corrigir e destravar essas funcionalidades.
 
 ---
 
-### Análise Raiz: Por que esses testes falharam?
+## 1. Testes falhados relacionados a Agentes e Casos
 
-Olhando seu código em `agentesController.js` e `agentesRepository.js`, a maioria das operações parece correta. Porém, um ponto crucial está no método de deletar agentes:
+**Lista resumida dos testes que falharam:**
 
-```js
-// agentesRepository.js - deletar
-async function deletar(id) {
-  const deletado = await db("agentes")
-    .where({ id: Number(id) })
-    .del();
-  return deletado;
-}
-```
+- Criação, listagem, busca por ID, atualização (PUT e PATCH) e deleção de agentes e casos.
+- Validações de payload e parâmetros inválidos para agentes e casos.
+- Tratamento correto dos status codes 400 e 404 para operações inválidas.
+- Falha ao proteger rotas com JWT (status 401) quando token não enviado ou inválido.
 
-E no controller:
+### Causa raiz provável:
 
-```js
-async function deletarAgente(req, res) {
-  // ...
-  const sucesso = await agentesRepository.deletar(id);
-  if (!sucesso) {
-    return res.status(404).json({ status: 404, mensagem: "Agente não encontrado" });
-  }
-  res.status(204).send();
-}
-```
+Você implementou muito bem o controller e repository dos agentes e casos, mas os testes indicam que as respostas não estão exatamente conforme o esperado, ou que o middleware de autenticação não está bloqueando corretamente requisições sem token.
 
-**Motivo provável do erro:**  
-O método `.del()` do Knex retorna o número de linhas afetadas (um número). Se nenhuma linha for deletada, retorna 0 (falsy). Seu código está correto para isso.
+Além disso, pode haver inconsistências nos retornos e nos status codes, ou mesmo algum problema com o formato dos dados enviados e recebidos.
 
-No entanto, um problema comum que pode estar causando falha nos testes é o formato do ID passado para o banco. Você está validando o ID com regex `/^\d+$/` e convertendo para `Number(id)`, o que é correto.
+---
 
-Então, o problema pode estar em outro lugar:
-
-- **Formato da data `dataDeIncorporacao` ao criar ou atualizar agentes:**  
-No seu controller, você está validando o formato da data e convertendo para ISO string na resposta:
+### Análise detalhada do middleware de autenticação (authMiddleware.js)
 
 ```js
-agenteCriado.dataDeIncorporacao = new Date(agenteCriado.dataDeIncorporacao).toISOString().split("T")[0];
-```
-
-Porém, isso só é feito no `adicionarAgente` e `atualizarAgente`, não no `atualizarAgenteParcial`.
-
-Se os testes esperam a data no formato `YYYY-MM-DD` para todas as respostas, isso pode causar falha na comparação dos dados.
-
-**Solução sugerida:**  
-Padronize o formato da data em todas as respostas que retornam agentes, inclusive na atualização parcial e na listagem.
-
-Exemplo para `listarAgentes`:
-
-```js
-async function listarAgentes(req, res) {
+function authMiddleware(req, res, next) {
   try {
-    const agentes = await agentesRepository.listar();
-    const agentesFormatados = agentes.map((agente) => ({
-      ...agente,
-      dataDeIncorporacao: new Date(agente.dataDeIncorporacao).toISOString().split("T")[0],
-    }));
-    res.status(200).json(agentesFormatados);
-  } catch (error) {
-    //...
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ status: 401, messagem: "Token Necessário" });
+    }
+
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+
+    next();
+  } catch (erro) {
+    return res.status(401).json({ staus: 401, messagem: "Token Inválido" });
   }
 }
 ```
 
-Faça algo semelhante para os métodos que retornam um agente único.
+- **Problema de digitação em mensagens de erro:**  
+  Você escreveu `"messagem"` e `"staus"` em vez de `"mensagem"` e `"status"`. Isso pode impactar testes que esperam chaves específicas no JSON de erro.
 
----
-
-### 2. Testes Falhando para CRUD de Casos
-
-Exemplos:
-
-- `CASES: Cria casos corretamente com status code 201 e retorna dados inalterados do caso criado mais seu ID`
-- `CASES: Lista todos os casos corretamente com status code 200 e retorna lista com todos os dados de todos os casos`
-- `CASES: Busca caso por ID corretamente com status code 200 e retorna dados do caso`
-- `CASES: Atualiza dados de um caso com por completo (com PUT) corretamente com status code 200 e retorna dados atualizados`
-- `CASES: Atualiza dados de um caso parcialmente (com PATCH) corretamente com status code 200 e retorna dados atualizados`
-- `CASES: Deleta dados de um caso corretamente com status code 204 e retorna corpo vazio`
-- Testes de validação 400 e 404 para casos.
-
----
-
-### Análise Raiz:
-
-Olhando seu `casosController.js` e `casosRepository.js`, o fluxo parece correto.
-
-Porém, um ponto importante:
-
-- Na validação do campo `status`, você permite apenas `"aberto"` ou `"solucionado"`, o que está certo.
-- Na criação e atualização, você verifica se o `agente_id` existe, o que é ótimo.
-- Você está retornando o objeto criado/atualizado diretamente.
-
-**Possível motivo de falha:**  
-A resposta do endpoint deve retornar o objeto exatamente como está no banco, com os campos corretos e sem alterações inesperadas.
-
-Verifique se não está alterando a resposta de forma que os testes não esperam (como converter datas, ou alterar nomes de campos).
-
-Outra possível causa:  
-Na migration, o campo `agente_id` permite `nullable()`, mas no código você obriga que seja obrigatório na criação. Isso pode não ser um problema, mas importante garantir que o dado enviado é coerente.
-
----
-
-### 3. Outros Pontos Importantes
-
-- **Middleware de autenticação:**  
-No seu middleware você tem:
+- **Recomendação:** Corrija para:
 
 ```js
-return res.status(401).json({ staus: 401, mensagem: "Token Inválido" });
+if (!token) {
+  return res.status(401).json({ status: 401, mensagem: "Token necessário" });
+}
+
+...
+
+return res.status(401).json({ status: 401, mensagem: "Token inválido" });
 ```
 
-Note que o campo `staus` está com typo, deveria ser `status`. Isso pode causar falha em testes que verificam o formato da resposta.
+Esse detalhe é importante porque testes automatizados são sensíveis a nomes de campos e mensagens exatas.
 
-Corrija para:
+---
+
+### Análise das respostas dos controllers de agentes e casos
+
+Por exemplo, no `agentesController.js`, no método `adicionarAgente`:
 
 ```js
-return res.status(401).json({ status: 401, mensagem: "Token Inválido" });
+const [agenteCriado] = await agentesRepository.adicionar(novoAgente);
+agenteCriado.dataDeIncorporacao = new Date(agenteCriado.dataDeIncorporacao).toISOString().split("T")[0];
+res.status(201).json(agenteCriado);
 ```
 
-- **Na rota de login (`logarUsuario`):**
+Aqui você retorna o agente criado com status 201, o que está correto. Porém, os testes podem estar esperando exatamente os campos e formatos retornados, sem alterações inesperadas.  
 
-Você retorna o token com chave `access_token` no JSON, mas no seu código:
+**Sugestão:** verifique se o campo `dataDeIncorporacao` está sendo retornado no formato ISO `YYYY-MM-DD` e se não há campos extras ou faltantes. Você pode usar um console.log para conferir o objeto retornado.
+
+---
+
+### Validações e campos extras
+
+Nos seus controllers, você valida se existem campos extras no payload, o que é ótimo! Porém, em alguns casos, a mensagem de erro está na chave `erros` e em outros `errors`. Isso pode causar inconsistência.
+
+Por exemplo, em `authController.js`:
+
+```js
+return res.status(400).json({status: 400, mensagem: "Parâmetros inválidos", erros: { geral: "Campos extras não são permitidos" }});
+```
+
+Mas em `agentesController.js`:
+
+```js
+return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", errors: erros });
+```
+
+**Recomendação:** padronize o nome da chave para `errors` ou `erros` em todo o projeto para evitar falhas nos testes.
+
+---
+
+### Requisição de exclusão de usuário
+
+Na rota:
+
+```js
+router.delete("/users/:id", authController.deletarUsuario);
+```
+
+Repare que você colocou `/users/:id` em `authRoutes.js`, enquanto o padrão é `/usuarios/:id`. Isso pode estar causando erros de rota não encontrada nos testes.
+
+**Sugestão:** alinhe o nome da rota para `/usuarios/:id` para seguir o padrão do projeto.
+
+---
+
+### JWT no login (authController.js)
+
+No método `logarUsuario`, você retorna o token com a chave `access_token`:
 
 ```js
 return res.status(200).json({ access_token: token });
 ```
 
-No enunciado, o exemplo usa `acess_token` (com 's' em vez de 'ss'):
+Porém, no enunciado, a chave correta é `acess_token` (com 's'):
 
 ```json
 {
@@ -180,101 +152,116 @@ No enunciado, o exemplo usa `acess_token` (com 's' em vez de 'ss'):
 }
 ```
 
-Se os testes esperam exatamente essa chave, você deve alinhar para:
+Essa diferença de nome pode causar falha no teste que verifica o formato do token.
+
+**Recomendação:** altere para:
 
 ```js
 return res.status(200).json({ acess_token: token });
 ```
 
-Isso pode causar falha no teste de login.
+---
 
-- **No controller de login, você tem um pequeno erro de digitação na propriedade do JSON de erro:**
+### Nome do parâmetro no token JWT
+
+Você está assinando o token com payload `{ email }`:
 
 ```js
-return res.status(401).json({ status: 401, mensage: "Senha e/ou E-mail inválidos" });
+const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1d" });
 ```
 
-`mensage` está escrito errado, o correto é `mensagem`.
+Isso está correto, mas verifique se o middleware está esperando outros campos, ou se os testes esperam o usuário com ID ou nome no token. Se for o caso, você pode incluir mais dados no payload.
 
-Corrija para:
+---
+
+### Resposta do método `deletar` dos repositories
+
+No `agentesRepository.js` e `casosRepository.js`, o método `deletar` retorna o número de linhas deletadas:
 
 ```js
-return res.status(401).json({ status: 401, mensagem: "Senha e/ou E-mail inválidos" });
+const deletado = await db("agentes").where({ id: Number(id) }).del();
+return deletado;
 ```
 
----
+No controller, você verifica:
 
-### 4. Estrutura de Diretórios e Arquivos
-
-Sua estrutura está muito próxima da esperada, parabéns! 👏
-
-Apenas certifique-se que:
-
-- O arquivo `.env` está presente e configurado com `JWT_SECRET`, `POSTGRES_USER`, `POSTGRES_PASSWORD` e `POSTGRES_DB`.
-- A migration para a tabela `usuarios` está criada e executada (vi que está no seu migration, ótimo).
-- O arquivo `authRoutes.js` está na pasta `routes/` (confirme se está com o nome correto e exportando as rotas).
-- O middleware `authMiddleware.js` está na pasta `middlewares/` e aplicado corretamente nas rotas `/agentes` e `/casos` (você fez isso no `server.js` corretamente).
-- O arquivo `INSTRUCTIONS.md` está atualizado com as informações de registro, login e uso do token JWT.
-
----
-
-## 💡 Dicas e Recomendações para Aprimorar
-
-- **Padronize o formato das datas em todas as respostas da API**, para evitar divergência nos testes e garantir uma boa experiência para quem consumir a API.
-
-- **Corrija os pequenos erros de digitação** em chaves JSON e mensagens de erro (`status` e `mensagem`).
-
-- **Alinhe os nomes das propriedades no JSON de resposta** com o que os testes esperam, como o `acess_token` (com um 's') no login.
-
-- **Garanta que o middleware de autenticação retorne mensagens consistentes e com o formato correto.**
-
-- **Verifique se todas as validações de entrada estão coerentes e completas**, evitando campos extras ou faltantes.
-
----
-
-## 📚 Recursos de Aprendizado Recomendados
-
-Para te ajudar a entender melhor os pontos acima e aprimorar sua implementação, recomendo fortemente os seguintes vídeos:
-
-- Sobre **Autenticação JWT e BCrypt**:  
-  [Esse vídeo, feito pelos meus criadores, fala muito bem sobre autenticação, JWT e segurança em APIs Node.js](https://www.youtube.com/watch?v=Q4LQOfYwujk)
-
-- Para entender melhor o uso prático de JWT:  
-  [JWT na prática com Node.js](https://www.youtube.com/watch?v=keS0JWOypIU)
-
-- Para compreender hashing de senhas e segurança:  
-  [Como usar BCrypt e JWT juntos](https://www.youtube.com/watch?v=L04Ln97AwoY)
-
-- Caso queira revisar a estrutura MVC e organização do projeto:  
-  [Arquitetura MVC para Node.js](https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s)
-
----
-
-## 📝 Resumo Rápido dos Pontos para Melhorar
-
-- Padronizar o formato da data `dataDeIncorporacao` em todas as respostas (GET, POST, PUT, PATCH).
-- Corrigir erros de digitação nas respostas JSON (`status`, `mensagem`, `mensage`).
-- Ajustar chave do token JWT retornado para `acess_token` conforme esperado pelos testes.
-- Garantir que o middleware de autenticação retorne mensagens consistentes e corretas.
-- Revisar validações para evitar campos extras ou falta de campos obrigatórios.
-- Confirmar que o `.env` está configurado com a variável `JWT_SECRET`.
-- Testar as rotas protegidas sem token para garantir status 401 correto.
-
----
-
-## Bernardo, você está no caminho certo! 🚀
-
-Sei que essas correções podem parecer detalhes, mas são justamente esses pequenos ajustes que transformam uma API funcional em uma API profissional, segura e confiável — exatamente o que o desafio pede!  
-
-Continue focado, revise com calma os pontos que destaquei, e logo sua API estará 100% pronta para produção! 💪🔥
-
-Se precisar, volte aos vídeos indicados para reforçar os conceitos de autenticação e organização do código.
-
-Qualquer dúvida, estou aqui para te ajudar! 😉
-
-Boa codada e até a próxima revisão! 👨‍💻✨
+```js
+if (!sucesso) {
+  return res.status(404).json({ status: 404, mensagem: "Agente não encontrado" });
+}
+res.status(204).send();
 ```
 
+Isso está correto, mas certifique-se de que o valor `sucesso` seja um número e que a condição funcione corretamente.
+
+---
+
+## 2. Estrutura de diretórios e arquivos
+
+Sua estrutura está muito bem organizada e segue o padrão esperado:
+
+- Pastas `controllers/`, `repositories/`, `routes/`, `middlewares/`, `db/` (com migrations e seeds), `utils/`.
+- Arquivos principais como `server.js`, `knexfile.js`, `.env`, `INSTRUCTIONS.md`.
+- Rotas de autenticação separadas em `authRoutes.js`.
+- Middleware de autenticação implementado.
+
+Parabéns! Isso facilita muito a manutenção e escalabilidade do projeto.
+
+---
+
+## 3. Recomendações de estudo para aprimorar
+
+Para te ajudar a ajustar esses detalhes, recomendo fortemente os seguintes vídeos feitos pelos meus criadores:
+
+- **Autenticação com JWT e bcrypt:**  
+  https://www.youtube.com/watch?v=L04Ln97AwoY  
+  Este vídeo explica na prática como usar JWT e bcrypt para autenticação segura — perfeito para entender detalhes do seu `authController` e `authMiddleware`.
+
+- **JWT na prática:**  
+  https://www.youtube.com/watch?v=keS0JWOypIU  
+  Para entender como gerar, validar e proteger rotas com JWT.
+
+- **Arquitetura MVC em Node.js:**  
+  https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s  
+  Para garantir que sua estrutura e organização estejam alinhadas às boas práticas.
+
+- **Knex Query Builder:**  
+  https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s  
+  Caso precise revisar comandos para manipular o banco com Knex.
+
+Se precisar, também veja a documentação oficial do Knex para migrations e seeds, para garantir que sua tabela `usuarios` está criada corretamente e que os seeds populam os dados.
+
+---
+
+# ✨ Resumo dos principais pontos para focar
+
+- Corrigir os nomes das chaves de erro no JSON para padronizar (`errors` ou `erros`).
+- Ajustar mensagens e chaves no middleware de autenticação (`mensagem` e `status`).
+- Corrigir o nome da rota DELETE de usuário para `/usuarios/:id` para seguir o padrão.
+- Corrigir chave do token JWT retornado no login para `acess_token` (com 's').
+- Verificar formato e campos retornados nas respostas dos endpoints de agentes e casos, para garantir que correspondem exatamente ao esperado.
+- Testar se o middleware está bloqueando requisições sem token ou com token inválido corretamente.
+- Conferir se as validações de payload estão funcionando e retornando os status codes 400 e 404 corretos.
+- Fazer testes manuais com ferramentas como Postman ou Insomnia para validar os fluxos de agentes, casos e usuários.
+
+---
+
+# Bernardo, você está muito próximo de ter uma API profissional e segura! 💪
+
+Continue ajustando esses detalhes e revisando as mensagens de erro e formatos de resposta. Isso vai destravar muitos testes e garantir que sua aplicação esteja pronta para produção.
+
+Se precisar, volte aos vídeos que te indiquei para reforçar fundamentos importantes de autenticação e organização de código.
+
+Você está indo muito bem, só falta um polimento final para brilhar! 🌟
+
+Se quiser, posso ajudar a revisar trechos específicos do seu código para ajustar as partes que causem falha nos testes. É só pedir! 😉
+
+Boa sorte e continue firme! 🚀
+
+---
+
+Abraços,  
+Seu Code Buddy 👨‍💻✨
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
