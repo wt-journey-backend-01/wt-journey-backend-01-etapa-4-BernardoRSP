@@ -1,5 +1,6 @@
 const agentesRepository = require("../repositories/agentesRepository.js");
 const intPos = /^\d+$/; // Regex para aceitar número inteiro positivo
+const modData = /^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/; // Regex para aceitar formato correto de data
 
 // Mostrar Todos os Agentes
 async function listarAgentes(req, res) {
@@ -18,7 +19,7 @@ async function encontrarAgente(req, res) {
   try {
     const { id } = req.params;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", errors: { id: "O ID deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID deve ter um padrão válido" } });
     }
     const agente = await agentesRepository.encontrar(id);
     if (!agente) {
@@ -39,9 +40,9 @@ async function adicionarAgente(req, res) {
     const { nome, dataDeIncorporacao, cargo } = req.body;
     const erros = {};
     const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
-    const campos = Object.keys(req.body);
+    const camposRecebidos = Object.keys(req.body);
 
-    if (campos.some((campo) => !camposPermitidos.includes(campo))) {
+    if (camposRecebidos.some((campo) => !camposPermitidos.includes(campo))) {
       erros.geral = "O caso deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
     }
 
@@ -49,14 +50,14 @@ async function adicionarAgente(req, res) {
       erros.geral = "Os campos 'nome', 'dataDeIncorporacao' e 'cargo' são obrigatórios";
     }
 
-    if (dataDeIncorporacao && !dataDeIncorporacao.match(/^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/)) {
+    if (dataDeIncorporacao && !dataDeIncorporacao.match(modData)) {
       erros.dataDeIncorporacao = "A data de incorporação deve ser uma data válida no formato AAAA-MM-DD";
     } else if (new Date(dataDeIncorporacao) > new Date()) {
       erros.dataDeIncorporacao = "A data de incorporação não pode ser uma data futura";
     }
 
     if (Object.keys(erros).length > 0) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", errors: erros });
+      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: erros });
     }
 
     const novoAgente = { nome, dataDeIncorporacao, cargo };
@@ -78,7 +79,7 @@ async function atualizarAgente(req, res) {
     const { nome, dataDeIncorporacao, cargo, id: bodyId } = req.body;
 
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", errors: { id: "O ID na URL deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID na URL deve ter um padrão válido" } });
     }
 
     const erros = {};
@@ -95,14 +96,14 @@ async function atualizarAgente(req, res) {
       erros.geral = "Todos os campos são obrigatórios para atualização completa (PUT)";
     }
 
-    if (dataDeIncorporacao && !dataDeIncorporacao.match(/^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/)) {
+    if (dataDeIncorporacao && !dataDeIncorporacao.match(modData)) {
       erros.dataDeIncorporacao = "A data de incorporação deve ser uma data válida no formato AAAA-MM-DD";
     } else if (new Date(dataDeIncorporacao) > new Date()) {
       erros.dataDeIncorporacao = "A data de incorporação não pode ser uma data futura";
     }
 
     if (Object.keys(erros).length > 0) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", errors: erros });
+      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: erros });
     }
 
     const agenteAtualizado = await agentesRepository.atualizar({ nome, dataDeIncorporacao, cargo }, id);
@@ -131,7 +132,7 @@ async function atualizarAgenteParcial(req, res) {
     const { nome, dataDeIncorporacao, cargo, id: bodyId } = req.body;
 
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", errors: { id: "O ID na URL deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID na URL deve ter um padrão válido" } });
     }
 
     const erros = {};
@@ -153,7 +154,7 @@ async function atualizarAgenteParcial(req, res) {
     }
 
     if (Object.keys(erros).length > 0) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", errors: erros });
+      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: erros });
     }
     const dadosAtualizados = {};
     if (nome !== undefined) dadosAtualizados.nome = nome;
@@ -182,7 +183,7 @@ async function deletarAgente(req, res) {
   try {
     const { id } = req.params;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", errors: { id: "O ID deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID deve ter um padrão válido" } });
     }
     const sucesso = await agentesRepository.deletar(id);
     if (!sucesso) {

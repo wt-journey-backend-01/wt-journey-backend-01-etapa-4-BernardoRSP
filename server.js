@@ -15,7 +15,7 @@ app.use(express.json());
 // Rotas da API
 app.use("/agentes", authMiddleware, agentesRoutes);
 app.use("/casos", authMiddleware, casosRoutes);
-app.use("/", authRoutes);
+app.use("/auth", authRoutes);
 
 // Configuração do Swagger para documentação
 setupSwagger(app);

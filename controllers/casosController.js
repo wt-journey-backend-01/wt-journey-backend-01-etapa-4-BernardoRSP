@@ -19,7 +19,7 @@ async function encontrarCaso(req, res) {
   try {
     const { id } = req.params;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", errors: { id: "O ID deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID deve ter um padrão válido" } });
     }
     const caso = await casosRepository.encontrar(id);
     if (!caso) {
@@ -55,7 +55,7 @@ async function adicionarCaso(req, res) {
       erros.agente_id = "O agente_id deve ter um padrão válido";
     }
     if (Object.keys(erros).length > 0) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", errors: erros });
+      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: erros });
     }
 
     const agenteDoCaso = await agentesRepository.encontrar(agente_id);
@@ -79,7 +79,7 @@ async function atualizarCaso(req, res) {
     const { id } = req.params;
     const { titulo, descricao, status, agente_id, id: bodyId } = req.body;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", errors: { id: "O ID na URL deve ser um padrão válido" } });
+      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID na URL deve ser um padrão válido" } });
     }
 
     const erros = {};
@@ -104,7 +104,7 @@ async function atualizarCaso(req, res) {
       erros.agente_id = "O agente com o ID fornecido não foi encontrado";
     }
     if (Object.keys(erros).length > 0) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", errors: erros });
+      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: erros });
     }
 
     const casoAtualizado = await casosRepository.atualizar({ titulo, descricao, status, agente_id }, id);
@@ -126,7 +126,7 @@ async function atualizarCasoParcial(req, res) {
     const { id } = req.params;
     const { titulo, descricao, status, agente_id, id: bodyId } = req.body;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", errors: { id: "O ID na URL deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID na URL deve ter um padrão válido" } });
     }
 
     const erros = {};
@@ -148,7 +148,7 @@ async function atualizarCasoParcial(req, res) {
       erros.agente_id = "O agente com o ID fornecido não foi encontrado";
     }
     if (Object.keys(erros).length > 0) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", errors: erros });
+      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: erros });
     }
 
     const dadosAtualizados = {};
@@ -179,7 +179,7 @@ async function deletarCaso(req, res) {
   try {
     const { id } = req.params;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", errors: { id: "O ID deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID deve ter um padrão válido" } });
     }
     const sucesso = await casosRepository.deletar(id);
     if (!sucesso) {
