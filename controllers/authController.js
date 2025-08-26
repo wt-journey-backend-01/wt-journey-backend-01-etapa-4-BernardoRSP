@@ -8,33 +8,10 @@ const testeSenha = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/; // Regex 
 async function registrarUsuario(req, res) {
   try {
     const { nome, email, senha } = req.body;
-    const erros = {};
-    const camposPermitidos = ["nome", "email", "senha"];
-    const campos = Object.keys(req.body);
-
-    if (campos.some(campo => !camposPermitidos.includes(campo))) {
-      return res.status(400).json({status: 400, mensagem: "Parâmetros inválidos", erros: { geral: "Campos extras não são permitidos" }});
-    }
-
-    if(!nome  || nome.trim() === "")   
-      erros.nome = "Nome obrigatório";
-    if(!email || email.trim() === "")  
-      erros.email = "E-mail obrigatório";
-    if(!senha || senha.trim() === "")  
-      erros.senha = "Senha obrigatória";
-
-    else if(!testeSenha.test(senha))
-      erros.senha = "Senha inválida. Use uma combinação de letras maiúsculas e minúsculas, números e caracteres especiais";
-    
-
-    if(Object.values(erros).length > 0){
-      return res.status(400).json({status: 400, mensagem: "Parâmetros inválidos", erros: erros});
-    }
 
     if (await usuariosRepository.encontrar(email)) {
       return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: { email: "O usuário já está cadastrado" } });
     }
-    
 
     const hashed = await bcrypt.hash(senha, 10);
 
@@ -54,13 +31,11 @@ async function logarUsuario(req, res) {
     const { email, senha } = req.body;
     const usuario = await usuariosRepository.encontrar(email);
 
-    if (!usuario)
-      return res.status(401).json({ status: 401, mensagem: "Senha e/ou E-mail inválidos" });
+    if (!usuario) return res.status(401).json({ status: 401, mensagem: "Senha e/ou E-mail inválidos" });
 
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
 
-    if (!senhaValida)
-      return res.status(401).json({ status: 401, mensage: "Senha e/ou E-mail inválidos" });
+    if (!senhaValida) return res.status(401).json({ status: 401, mensage: "Senha e/ou E-mail inválidos" });
 
     const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
@@ -79,9 +54,9 @@ async function deletarUsuario(req, res) {
     if (!intPos.test(id)) {
       return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID deve ter um padrão válido" } });
     }
-    const sucesso = await usuariosRepository.deletar(id);
-    if (!sucesso) {
-      return res.status(404).json({ status: 404, mensagem: "Usuário não encontrado" });
+    const usuarioDeletado = usuariosRepository.deletar(id);
+    if (!usuarioDeletado) {
+      return res.status(404).json({ statu: 404, message: "Usuário não encontrado" });
     }
     return res.status(204).send();
   } catch (error) {
@@ -94,12 +69,7 @@ async function deletarUsuario(req, res) {
 // Deslogar um Usuário Cadastrado no Sistema
 async function deslogarUsuario(req, res) {
   try {
-    return res.status(204).send();
-  } catch (erro) {
-    console.log("Erro referente a: deslogarUsuario\n");
-    console.log(error);
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
-  }
+  } catch (erro) {}
 }
 
 module.exports = {
