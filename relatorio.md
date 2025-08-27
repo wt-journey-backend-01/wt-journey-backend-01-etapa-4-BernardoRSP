@@ -1,266 +1,232 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 4 créditos restantes para usar o sistema de feedback AI.
+Você tem 3 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para BernardoRSP:
 
 Nota final: **52.0/100**
 
-```markdown
-# Olá BernardoRSP! 👋🚀
+# Feedback para BernardoRSP 🚓🕵️‍♂️
 
-Primeiramente, parabéns pelo esforço e dedicação até aqui! 🎉 Você já entregou uma base sólida da sua API com autenticação JWT, hashing de senha com bcrypt, e uma estrutura organizada que segue a arquitetura MVC. Isso é muito importante para projetos profissionais!
-
----
-
-## 🎯 Pontos Positivos que Você Mandou Bem
-
-- A implementação da autenticação está funcionando: os testes de usuários (registro, login, logout e deleção) passaram com sucesso! Isso mostra que você entendeu bem o fluxo de autenticação, uso do bcrypt para hash e JWT para tokens.
-- Middleware de autenticação está presente e aplicado nas rotas sensíveis (`/agentes` e `/casos`), o que é fundamental para segurança.
-- A organização do projeto está muito próxima da estrutura esperada, com pastas bem divididas entre controllers, repositories, routes, middlewares e db.
-- Documentação via Swagger está configurada e integrada, o que é ótimo para APIs profissionais.
-- Você criou a migration para a tabela `usuarios` corretamente, incluindo os campos necessários.
-
-Além disso, você já implementou alguns bônus interessantes, como:
-
-- Logout com status 204 (mesmo que não invalide token, o endpoint existe).
-- Deleção de usuário com validação do ID.
-  
-Parabéns por essas conquistas! 👏
+Olá, Bernardo! Primeiro, parabéns por todo o esforço e dedicação que você colocou nesse desafio de API REST segura com Node.js, Express e PostgreSQL! 🎉 Você já tem uma base muito sólida, principalmente no que diz respeito à autenticação de usuários, que está bem estruturada e passou em todos os testes essenciais. Isso mostra que você entendeu muito bem conceitos importantes como hashing de senha com bcrypt, geração de JWT e exclusão de usuários.
 
 ---
 
-## 🚨 Testes que Falharam e Análise Detalhada
+## 🎯 O que você acertou muito bem
 
-Você teve falha em vários testes relacionados aos **agentes** e **casos**, principalmente nas operações CRUD (criação, listagem, busca, atualização e deleção). Além disso, os testes bônus de filtragem e detalhes do usuário autenticado não passaram.
-
-Vou destrinchar as principais causas que identifiquei para esses erros, para te ajudar a destravar seu projeto.
+- **Autenticação de usuários**: Registro, login, logout e exclusão de usuários estão funcionando corretamente, com validações robustas para senha e email.  
+- **Middleware de autenticação JWT**: Está protegendo as rotas `/agentes` e `/casos` corretamente, bloqueando acessos sem token válido.  
+- **Estrutura do projeto**: Sua organização de pastas e arquivos está muito próxima do esperado, com controllers, repositories, middlewares e rotas bem separados.  
+- **Uso do Knex e PostgreSQL**: As migrations, seeds e configuração do banco estão corretas, e o knexfile está configurado para os ambientes de desenvolvimento e CI.  
+- **Documentação Swagger**: As rotas de agentes e casos possuem comentários para documentação, o que é ótimo para produção.
 
 ---
 
-### 1. Problema Crítico: Respostas incorretas no DELETE de agentes e casos
+## 🚨 Análise dos Testes que Falharam e Pontos de Melhoria
 
-Nos controllers `agentesController.js` e `casosController.js`, notei um padrão que causa erro nos testes de deleção:
+### 1. Testes relacionados aos **Agentes** e **Casos** (CRUD e validações)
+
+Você teve falhas em praticamente todos os testes que envolvem criação, leitura, atualização e exclusão de agentes e casos. Isso indica que, apesar da estrutura estar correta, alguma coisa está impedindo que esses endpoints funcionem plenamente conforme o esperado.
+
+Vamos destrinchar as possíveis causas:
+
+#### a) **Problema com o retorno dos dados após inserção e atualização**
+
+Nos seus controllers de agentes e casos, você usa os métodos do repository que fazem `.insert(...).returning("*")` e `.update(...).returning("*")`, o que está correto. Porém, notei que no controller `agentesController.js`, na função `adicionarAgente`, você faz:
 
 ```js
-// Exemplo do deletarAgente
-async function deletarAgente(req, res) {
-  // ...
-  const sucesso = await agentesRepository.deletar(id);
-  if (sucesso > 0) {
-    return res.status(404).json({ status: 404, mensagem: "Agente não encontrado" });
-  }
-  res.status(204).send();
+const [agenteCriado] = await agentesRepository.adicionar(novoAgente);
+agenteCriado.dataDeIncorporacao = new Date(agenteCriado.dataDeIncorporacao).toISOString().split("T")[0];
+res.status(201).json(agenteCriado);
+```
+
+Mas no seu repository `agentesRepository.js`, o método `adicionar` é:
+
+```js
+async function adicionar(agente) {
+  const adicionado = await db("agentes").insert(agente).returning("*");
+  return adicionado;
 }
 ```
 
-**O problema:**  
-Você está retornando `404` quando `sucesso > 0`. Mas o método de deletar do Knex retorna o número de linhas afetadas. Se `sucesso > 0`, significa que o agente **foi encontrado e deletado com sucesso**, então deveria retornar `204 No Content` e não `404`.
+Esse método retorna um **array** de agentes adicionados, o que você está desestruturando corretamente no controller.
 
-O correto seria inverter essa condição para:
+No entanto, em outras funções, como `atualizar`:
 
 ```js
-if (sucesso === 0) {
+async function atualizar(dadosAtualizados, id) {
+  const atualizado = await db("agentes")
+    .where({ id: Number(id) })
+    .update(dadosAtualizados)
+    .returning("*");
+  return atualizado[0];
+}
+```
+
+Você retorna apenas o primeiro elemento do array. Isso está correto.
+
+**Mas atenção:** No controller `atualizarAgenteParcial`, você faz:
+
+```js
+const agenteAtualizado = await agentesRepository.atualizar(dadosAtualizados, id);
+if (!agenteAtualizado) {
   return res.status(404).json({ status: 404, mensagem: "Agente não encontrado" });
 }
-res.status(204).send();
+
+res.status(200).json(agenteAtualizado);
 ```
 
-Mesma lógica vale para o `deletarCaso` no `casosController.js`.
+Se a atualização não encontrar o agente, `atualizar` retorna `undefined` (porque `atualizado[0]` será `undefined`), o que é tratado.
+
+**Possível problema:** Se o banco não atualizar nenhum registro, o `.returning("*")` pode retornar um array vazio, e o `[0]` será `undefined`. Isso está correto, mas é importante garantir que o ID passado seja válido e que o agente exista.
+
+**Sugestão:** Verifique se o ID está sendo passado corretamente e se o banco tem o registro. Isso pode estar relacionado aos testes que falharam com status 404.
 
 ---
 
-### 2. Problema semelhante no `deletarUsuario` do `authController.js`
+#### b) **Validação de campos e tipos**
 
-Você fez certo ao verificar `if (!sucesso)`, que é equivalente a `sucesso === 0`, para retornar 404, mas para manter padrão, recomendo usar o mesmo padrão de comparação explícita para clareza.
+Você tem validações muito boas para IDs e campos obrigatórios, usando regex para IDs e checando campos extras. Isso é ótimo para garantir a integridade.
 
----
+Porém, alguns testes falharam por status 400 ao tentar criar ou atualizar com payload incorreto. Isso pode indicar que:
 
-### 3. Validação de campos extras nos controllers de agentes e casos
+- Os erros retornados têm mensagens ou formatos diferentes do esperado pelo teste.  
+- A validação de campos extras ou faltantes pode estar bloqueando casos que o teste espera aceitar (ou vice-versa).  
 
-Nos métodos de criação e atualização você está validando campos extras, o que é ótimo! Porém, em algumas mensagens você usa o termo "caso" para agentes, o que pode confundir:
+**Exemplo de validação na criação de agente:**
 
 ```js
 if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-  erros.geral = "O caso deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
+  erros.geral = "O agente deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
+}
+
+if (!nome || !dataDeIncorporacao || !cargo) {
+  erros.geral = "Os campos 'nome', 'dataDeIncorporacao' e 'cargo' são obrigatórios";
 }
 ```
 
-Aqui, "caso" deveria ser "agente". Isso não causa erro funcional, mas é uma questão de clareza para quem ler a mensagem de erro.
+Aqui você sobrescreve o campo `erros.geral` se qualquer uma das duas condições for verdadeira. Isso pode fazer com que, se houver campos extras **e** campos faltantes, apenas o último erro seja enviado.
+
+**Melhoria:** Acumule as mensagens de erro para que o usuário saiba de todos os problemas, não só do último.
 
 ---
 
-### 4. Atualização parcial e completa dos agentes e casos
+#### c) **Formatação de dados na resposta**
 
-Você está validando corretamente os campos permitidos e obrigatórios, o que é ótimo. Porém, cuidado com o retorno dos dados atualizados.
+No método `adicionarAgente` você formata a data para o formato `YYYY-MM-DD` antes de enviar a resposta. Isso é ótimo, mas em outras funções, como `atualizarAgenteParcial`, você não faz essa formatação.
 
-No `atualizarAgente` você faz:
+Se o teste espera a data nesse formato, isso pode causar falha.
+
+**Sugestão:** Centralize essa formatação para garantir consistência em todas as respostas que retornam agentes.
+
+---
+
+#### d) **Possível ausência da migration de usuários**
+
+Você tem a migration para criar a tabela `usuarios` no arquivo `db/migrations/20250807003359_solution_migrations.js`, o que está correto.
+
+Certifique-se de que:
+
+- Você executou `npx knex migrate:latest` para aplicar essa migration.  
+- O banco está sincronizado e a tabela `usuarios` existe.  
+
+Se a tabela não existir, os testes de autenticação falhariam, mas como eles passaram, provavelmente está tudo certo aqui.
+
+---
+
+### 2. Testes de autenticação passaram, mas atenção a detalhes no middleware
+
+No seu `authMiddleware.js`, notei que você tem:
 
 ```js
-const agenteAtualizado = await agentesRepository.atualizar({ nome, dataDeIncorporacao, cargo }, id);
-console.log(agenteAtualizado);
-
-if (agenteAtualizado) {
-  agenteAtualizado.dataDeIncorporacao = new Date(agenteAtualizado.dataDeIncorporacao).toISOString().split("T")[0];
+if (!token) {
+  return res.status(401).json({ status: 401, menssagem: "Token Necessário" });
 }
 ```
 
-Isso é bom, mas não vi algo parecido no patch. Além disso, no patch você não formata a data, o que pode causar diferenças sutis na resposta esperada pelos testes.
-
-Recomendo padronizar o formato da data em todas as respostas que retornam agentes.
-
----
-
-### 5. Possível ausência da migration ou seed para usuários
-
-Vi que você tem a migration para criar a tabela `usuarios`, mas não vi seed para popular usuários. Isso não é obrigatório, mas pode ajudar em testes locais.
-
----
-
-### 6. No middleware de autenticação, mensagens de erro com typo
-
-Você escreveu:
+E também no catch:
 
 ```js
-return res.status(401).json({ status: 401, messagem: "Token Necessário" });
+return res.status(401).json({ status: 401, menssagem: "Token Inválido" });
+```
+
+**Detalhe:** A palavra "menssagem" está escrita com dois "s". Isso pode causar problemas se algum teste espera o campo `mensagem`.
+
+**Sugestão:** Corrija para:
+
+```js
+return res.status(401).json({ status: 401, mensagem: "Token Necessário" });
 ```
 
 e
 
 ```js
-return res.status(401).json({ status: 401, messagem: "Token Inválido" });
-```
-
-O correto é **mensagem** (com "g"). Isso pode causar falha em testes automatizados que validam a chave exata do JSON.
-
----
-
-### 7. No `authController.js`, erro de digitação na resposta de login
-
-Você tem:
-
-```js
-if (!senhaValida) return res.status(401).json({ status: 401, mensage: "Senha e/ou E-mail inválidos" });
-```
-
-Aqui o correto é `mensagem` (com "m" no final), não `mensage`. Esse detalhe também pode causar falha nos testes.
-
----
-
-### 8. No `authController.js`, método `deslogarUsuario` tem catch com variável `erro` mas usa `error`
-
-```js
-async function deslogarUsuario(req, res) {
-  try {
-    return res.status(204).send();
-  } catch (erro) {
-    console.log("Erro referente a: deslogarUsuario\n");
-    console.log(error); // deveria ser 'erro'
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
-  }
-}
-```
-
-Essa inconsistência pode causar erro não tratado.
-
----
-
-### 9. No `usuariosRepository.js`, métodos `logar` e `deslogar` estão vazios
-
-Embora não estejam sendo usados diretamente, é melhor remover ou implementar para evitar confusão futura.
-
----
-
-### 10. Testes bônus que falharam indicam ausência de funcionalidades extras
-
-- Endpoints para filtragem avançada de casos e agentes.
-- Endpoint `/usuarios/me` para retornar dados do usuário autenticado.
-
-Esses são bônus, mas implementar esses recursos pode aumentar sua nota e deixar a API mais completa.
-
----
-
-## 🎯 Recomendações e Recursos para Você
-
-- Para corrigir os problemas com status code e lógica de deleção, revise a documentação do Knex para `.del()` e o padrão REST para respostas DELETE:  
-  [Knex.js Docs - Delete](https://knexjs.org/#Builder-del)  
-- Para garantir mensagens de erro consistentes e corretas, preste atenção aos detalhes de nomes de propriedades no JSON, pois testes automatizados são sensíveis a isso.  
-- Para padronizar a formatação de datas e respostas, crie uma função utilitária para formatar datas antes de enviar no JSON.  
-- Para entender melhor como implementar autenticação JWT e bcrypt corretamente, recomendo fortemente este vídeo feito pelos meus criadores, que explica os conceitos fundamentais:  
-  ▶️ https://www.youtube.com/watch?v=Q4LQOfYwujk  
-- Para entender o uso prático de JWT e bcrypt com exemplos claros, veja também:  
-  ▶️ https://www.youtube.com/watch?v=L04Ln97AwoY  
-- Se ainda tiver dúvidas sobre estrutura de projeto MVC e organização, este vídeo vai te ajudar a estruturar seu código para escalabilidade:  
-  ▶️ https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s  
-
----
-
-## 🛠️ Exemplos de Correções
-
-### Correção do `deletarAgente`:
-
-```js
-async function deletarAgente(req, res) {
-  try {
-    const { id } = req.params;
-    if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID deve ter um padrão válido" } });
-    }
-    const sucesso = await agentesRepository.deletar(id);
-    if (sucesso === 0) {
-      return res.status(404).json({ status: 404, mensagem: "Agente não encontrado" });
-    }
-    res.status(204).send();
-  } catch (error) {
-    console.log("Erro referente a: deletarAgente\n");
-    console.log(error);
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
-  }
-}
-```
-
-### Correção do middleware (`authMiddleware.js`) mensagens:
-
-```js
-if (!token) {
-  return res.status(401).json({ status: 401, mensagem: "Token Necessário" });
-}
-
-// ...
-
 return res.status(401).json({ status: 401, mensagem: "Token Inválido" });
 ```
 
-### Correção do erro de digitação no login:
-
-```js
-if (!senhaValida) return res.status(401).json({ status: 401, mensagem: "Senha e/ou E-mail inválidos" });
-```
+Esse tipo de erro simples pode causar falhas nos testes de autenticação e autorização.
 
 ---
 
-## 📋 Resumo Final - O que focar para melhorar:
+### 3. Testes Bônus que você passou — parabéns! 🎖️
 
-- [ ] Corrigir a lógica de resposta nos métodos DELETE para retornar 204 quando deletar com sucesso e 404 quando não encontrar.
-- [ ] Corrigir erros de digitação nas mensagens JSON (`mensagem` ao invés de `messagem` ou `mensage`).
-- [ ] Padronizar o formato da data em todas as respostas que retornam agentes e casos (ex: `YYYY-MM-DD`).
-- [ ] Ajustar o catch do `deslogarUsuario` para usar a variável correta do erro.
-- [ ] Remover ou implementar métodos vazios no `usuariosRepository.js`.
-- [ ] Implementar os endpoints bônus para filtragem e `/usuarios/me` para melhorar a nota.
-- [ ] Revisar mensagens de erro para clareza e consistência (ex: "caso" vs "agente").
-- [ ] Testar localmente usando os comandos de migration e seed para garantir banco populado e funcional.
-- [ ] Validar uso correto do `.env` e `JWT_SECRET` para evitar erros de token.
+Você implementou corretamente:
+
+- Endpoint `/usuarios/me` para retornar dados do usuário logado.  
+- Mensagens de erro customizadas para argumentos inválidos em agentes e casos.  
+- Filtragem e busca simples por status, agente e keywords nos casos.  
+- Ordenação por data de incorporação dos agentes.  
+
+Isso mostra que você foi além do básico e entregou funcionalidades extras que enriquecem sua API. Excelente trabalho! 👏
+
+---
+
+## 💡 Recomendações para você avançar ainda mais
+
+1. **Corrija o campo `menssagem` para `mensagem` no middleware de autenticação**.  
+2. **Revise as validações para acumular erros e enviar mensagens claras e completas** (exemplo: não sobrescrever `erros.geral`).  
+3. **Centralize a formatação das datas para garantir consistência nas respostas da API**.  
+4. **Confirme que os IDs recebidos são sempre convertidos para número antes de usar no banco** (você já faz isso, ótimo!).  
+5. **Teste manualmente os endpoints de agentes e casos para verificar se os dados retornados e os status codes estão corretos**.  
+6. **Leia e siga a estrutura de diretórios e arquivos conforme o enunciado, que você já está quase perfeito!**  
+7. **Revise o uso do método `.returning("*")` para garantir que sempre retorna os dados esperados**.  
+8. **Corrija mensagens de erro para que estejam exatamente como esperado nos testes (ex: nomes dos campos e textos).**
 
 ---
 
-Bernardo, você está no caminho certo! 💪✨ Com esses ajustes, sua API vai ficar muito mais robusta e alinhada com as expectativas do desafio.
+## 📚 Recursos que recomendo para você aprofundar:
 
-Continue firme, aproveite os recursos recomendados e não hesite em me chamar para ajudar com dúvidas específicas! 🚀
+- Sobre **autenticação e JWT**:  
+  [Esse vídeo, feito pelos meus criadores, fala muito bem sobre autenticação e segurança em Node.js com JWT e bcrypt](https://www.youtube.com/watch?v=Q4LQOfYwujk)  
 
-Um grande abraço e sucesso no seu código! 👏👨‍💻👩‍💻
+- Para entender melhor o uso do **Knex e migrations**:  
+  [Documentação oficial do Knex.js sobre migrations](https://www.youtube.com/watch?v=dXWy_aGCW1E)  
+  [Guia detalhado do Knex Query Builder](https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s)  
+
+- Para aprimorar a **estrutura do projeto e boas práticas**:  
+  [Arquitetura MVC para Node.js](https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s)  
 
 ---
-```
+
+## ✅ Resumo rápido dos principais pontos para focar
+
+- [ ] Corrigir o campo `menssagem` para `mensagem` no middleware de autenticação.  
+- [ ] Ajustar validações para acumular erros e enviar mensagens completas.  
+- [ ] Garantir formatação consistente da data `dataDeIncorporacao` em todas as respostas.  
+- [ ] Confirmar que os endpoints de agentes e casos retornam status codes e dados conforme esperado (201, 200, 204, 400, 404).  
+- [ ] Revisar o uso do `.returning("*")` para evitar retornos vazios ou inesperados.  
+- [ ] Testar manualmente os endpoints para garantir que erros e sucessos estão coerentes com o esperado.  
+- [ ] Manter a estrutura do projeto organizada conforme especificado.  
+
+---
+
+Bernardo, você está muito próximo de entregar uma API robusta, segura e profissional! 🚀 Continue focando nesses detalhes que, uma vez ajustados, vão destravar todos os testes obrigatórios e deixar seu projeto impecável. Estou aqui torcendo e pronto para te ajudar sempre que precisar! 💪
+
+Um abraço e continue com essa energia! 👊🔥
+
+---
+
+Se precisar de mais ajuda, só chamar! 😉
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
