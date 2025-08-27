@@ -12,7 +12,7 @@ async function listarAgentes(req, res) {
   } catch (error) {
     console.log("Erro referente a: listarAgentes\n");
     console.log(error);
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
+    res.status(500).json({ status: 500, message: "Erro interno do servidor" });
   }
 }
 
@@ -21,7 +21,7 @@ async function encontrarAgente(req, res) {
   try {
     const { id } = req.params;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID deve ter um padrão válido" } });
     }
 
     const agente = await agentesRepository.encontrar(id);
@@ -31,14 +31,14 @@ async function encontrarAgente(req, res) {
     }
 
     if (!agente) {
-      return res.status(404).json({ status: 404, mensagem: "Agente não encontrado" });
+      return res.status(404).json({ status: 404, message: "Agente não encontrado" });
     }
 
     res.status(200).json(agente);
   } catch (error) {
     console.log("Erro referente a: encontrarAgente\n");
     console.log(error);
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
+    res.status(500).json({ status: 500, message: "Erro interno do servidor" });
   }
 }
 
@@ -50,12 +50,8 @@ async function adicionarAgente(req, res) {
     const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
     const campos = Object.keys(req.body);
 
-    if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-      erros.CamposNãoPermitidos = "O agente deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
-    }
-
-    if (!nome || !dataDeIncorporacao || !cargo) {
-      erros.CamposObrigatórios = "Os campos 'nome', 'dataDeIncorporacao' e 'cargo' são obrigatórios";
+    if ((campos.some((campo) => !camposPermitidos.includes(campo))) || !nome || !dataDeIncorporacao || !cargo) {
+      erros.geral = "O agente deve conter apenas e obrigatorimente os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
     }
 
     if (dataDeIncorporacao && !dataDeIncorporacao.match(/^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/)) {
@@ -65,7 +61,7 @@ async function adicionarAgente(req, res) {
     }
 
     if (Object.keys(erros).length > 0) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: erros });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
 
     const novoAgente = { nome, dataDeIncorporacao, cargo };
@@ -76,7 +72,7 @@ async function adicionarAgente(req, res) {
   } catch (error) {
     console.log("Erro referente a: adicionarAgente\n");
     console.log(error);
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
+    res.status(500).json({ status: 500, message: "Erro interno do servidor" });
   }
 }
 
@@ -87,7 +83,7 @@ async function atualizarAgente(req, res) {
     const { nome, dataDeIncorporacao, cargo, id: bodyId } = req.body;
 
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID na URL deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID na URL deve ter um padrão válido" } });
     }
 
     const erros = {};
@@ -97,11 +93,8 @@ async function atualizarAgente(req, res) {
     if (bodyId) {
       erros.id = "Não é permitido alterar o ID de um agente.";
     }
-    if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-      erros.CamposNãoPermitidos = "O agente deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
-    }
-    if (!nome || !dataDeIncorporacao || !cargo) {
-      erros.CamposObrigatórios = "Todos os campos são obrigatórios para atualização completa (PUT)";
+    if ((campos.some((campo) => !camposPermitidos.includes(campo))) || !nome || !dataDeIncorporacao || !cargo) {
+      erros.geral = "O agente deve conter apenas e obrigatorimente os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
     }
 
     if (dataDeIncorporacao && !dataDeIncorporacao.match(/^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/)) {
@@ -111,7 +104,7 @@ async function atualizarAgente(req, res) {
     }
 
     if (Object.keys(erros).length > 0) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: erros });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
 
     const [agenteAtualizado] = await agentesRepository.atualizar({ nome, dataDeIncorporacao, cargo }, id);
@@ -122,14 +115,14 @@ async function atualizarAgente(req, res) {
     }
 
     if (!agenteAtualizado) {
-      return res.status(404).json({ status: 404, mensagem: "Agente não encontrado" });
+      return res.status(404).json({ status: 404, message: "Agente não encontrado" });
     }
 
     res.status(200).json(agenteAtualizado);
   } catch (error) {
     console.log("Erro referente a: atualizarAgente\n");
     console.log(error);
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
+    res.status(500).json({ status: 500, message: "Erro interno do servidor" });
   }
 }
 
@@ -140,7 +133,7 @@ async function atualizarAgenteParcial(req, res) {
     const { nome, dataDeIncorporacao, cargo, id: bodyId } = req.body;
 
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID na URL deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID na URL deve ter um padrão válido" } });
     }
 
     const erros = {};
@@ -148,7 +141,7 @@ async function atualizarAgenteParcial(req, res) {
     const campos = Object.keys(req.body);
 
     if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-      erros.CamposNãoPermitidos = "Campos inválidos enviados. Permitidos: 'nome', 'dataDeIncorporacao' e 'cargo";
+      erros.geral = "Campos inválidos enviados. Permitidos: 'nome', 'dataDeIncorporacao' e 'cargo";
     }
 
     if (bodyId) {
@@ -162,7 +155,7 @@ async function atualizarAgenteParcial(req, res) {
     }
 
     if (Object.keys(erros).length > 0) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: erros });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
     const dadosAtualizados = {};
     if (nome !== undefined) dadosAtualizados.nome = nome;
@@ -170,7 +163,7 @@ async function atualizarAgenteParcial(req, res) {
     if (cargo !== undefined) dadosAtualizados.cargo = cargo;
 
     if (Object.keys(dadosAtualizados).length === 0) {
-      return res.status(400).json({ status: 400, mensagem: "Nenhum campo válido para atualização foi enviado." });
+      return res.status(400).json({ status: 400, message: "Nenhum campo válido para atualização foi enviado." });
     }
 
     const [agenteAtualizado] = await agentesRepository.atualizar(dadosAtualizados, id);
@@ -180,14 +173,14 @@ async function atualizarAgenteParcial(req, res) {
     }
 
     if (!agenteAtualizado) {
-      return res.status(404).json({ status: 404, mensagem: "Agente não encontrado" });
+      return res.status(404).json({ status: 404, message: "Agente não encontrado" });
     }
 
     res.status(200).json(agenteAtualizado);
   } catch (error) {
-    console.log("Erro referente a: atualizarAgente\n");
+    console.log("Erro referente a: atualizarAgenteParcial\n");
     console.log(error);
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
+    res.status(500).json({ status: 500, message: "Erro interno do servidor" });
   }
 }
 
@@ -196,17 +189,17 @@ async function deletarAgente(req, res) {
   try {
     const { id } = req.params;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID deve ter um padrão válido" } });
     }
     const sucesso = await agentesRepository.deletar(id);
     if (sucesso === 0) {
-      return res.status(404).json({ status: 404, mensagem: "Agente não encontrado" });
+      return res.status(404).json({ status: 404, message: "Agente não encontrado" });
     }
     res.status(204).send();
   } catch (error) {
     console.log("Erro referente a: deletarAgente\n");
     console.log(error);
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
+    res.status(500).json({ status: 500, message: "Erro interno do servidor" });
   }
 }
 

@@ -13,7 +13,7 @@ async function registrarUsuario(req, res) {
     const campos = Object.keys(req.body);
 
     if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: { CamposNãoPermitidos: "Campos extras não são permitidos" } });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: { CamposNãoPermitidos: "Campos extras não são permitidos" } });
     }
 
     if (!nome || nome.trim() === "") erros.nome = "Nome obrigatório";
@@ -22,11 +22,11 @@ async function registrarUsuario(req, res) {
     else if (!testeSenha.test(senha)) erros.senha = "Senha inválida. Use uma combinação de letras maiúsculas e minúsculas, números e caracteres especiais";
 
     if (Object.values(erros).length > 0) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: erros });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
 
     if (await usuariosRepository.encontrar(email)) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: { email: "O usuário já está cadastrado" } });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: { email: "O usuário já está cadastrado" } });
     }
 
     const hashed = await bcrypt.hash(senha, 10);
@@ -37,7 +37,7 @@ async function registrarUsuario(req, res) {
   } catch (error) {
     console.log("Erro referente a: registrarUsuarios\n");
     console.log(error);
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
+    res.status(500).json({ status: 500, message: "Erro interno do servidor" });
   }
 }
 
@@ -47,19 +47,19 @@ async function logarUsuario(req, res) {
     const { email, senha } = req.body;
     const usuario = await usuariosRepository.encontrar(email);
 
-    if (!usuario) return res.status(401).json({ status: 401, mensagem: "Senha e/ou E-mail inválidos" });
+    if (!usuario) return res.status(401).json({ status: 401, message: "Senha e/ou E-mail inválidos" });
 
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
 
-    if (!senhaValida) return res.status(401).json({ status: 401, mensagem: "Senha e/ou E-mail inválidos" });
+    if (!senhaValida) return res.status(401).json({ status: 401, message: "Senha e/ou E-mail inválidos" });
 
     const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
-    return res.status(200).json({ acess_token: token });
+    return res.status(200).json({ access_token: token });
   } catch (error) {
     console.log("Erro referente a: logarUsuario\n");
     console.log(error);
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
+    res.status(500).json({ status: 500, message: "Erro interno do servidor" });
   }
 }
 
@@ -68,17 +68,18 @@ async function deletarUsuario(req, res) {
   try {
     const { id } = req.params;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID deve ter um padrão válido" } });
     }
     const sucesso = await usuariosRepository.deletar(id);
+    
     if (sucesso === 0) {
-      return res.status(404).json({ status: 404, mensagem: "Usuário não encontrado" });
+      return res.status(404).json({ status: 404, message: "Usuário não encontrado" });
     }
     return res.status(204).send();
   } catch (error) {
     console.log("Erro referente a: deletarUsuario\n");
     console.log(error);
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
+    res.status(500).json({ status: 500, message: "Erro interno do servidor" });
   }
 }
 
@@ -89,7 +90,7 @@ async function deslogarUsuario(req, res) {
   } catch (error) {
     console.log("Erro referente a: deslogarUsuario\n");
     console.log(error);
-    res.status(500).json({ status: 500, mensagem: "Erro interno do servidor" });
+    res.status(500).json({ status: 500, message: "Erro interno do servidor" });
   }
 }
 
