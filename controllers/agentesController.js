@@ -42,7 +42,7 @@ async function adicionarAgente(req, res) {
     const campos = Object.keys(req.body);
 
     if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-      erros.geral = "O caso deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
+      erros.geral = "O agente deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
     }
 
     if (!nome || !dataDeIncorporacao || !cargo) {
@@ -89,7 +89,7 @@ async function atualizarAgente(req, res) {
       erros.id = "Não é permitido alterar o ID de um agente.";
     }
     if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-      erros.geral = "O caso deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
+      erros.geral = "O agente deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
     }
     if (!nome || !dataDeIncorporacao || !cargo) {
       erros.geral = "Todos os campos são obrigatórios para atualização completa (PUT)";
@@ -185,7 +185,7 @@ async function deletarAgente(req, res) {
       return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID deve ter um padrão válido" } });
     }
     const sucesso = await agentesRepository.deletar(id);
-    if (sucesso > 0) {
+    if (sucesso === 0) {
       return res.status(404).json({ status: 404, mensagem: "Agente não encontrado" });
     }
     res.status(204).send();

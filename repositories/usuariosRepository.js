@@ -14,9 +14,6 @@ async function registrar(usuario) {
   return registrado;
 }
 
-// Logar um Usuário Cadastrado no Sistema
-async function logar(usuario) {}
-
 // Deletar a Conta de um Usuário
 async function deletar(id) {
   const deletado = await db("usuarios")
@@ -25,13 +22,8 @@ async function deletar(id) {
   return deletado;
 }
 
-// Deslogar um Usuário Cadastrado no Sistema
-async function deslogar() {}
-
 module.exports = {
   encontrar,
   registrar,
-  logar,
   deletar,
-  deslogar,
 };

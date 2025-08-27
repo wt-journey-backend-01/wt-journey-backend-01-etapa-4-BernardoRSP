@@ -182,7 +182,7 @@ async function deletarCaso(req, res) {
       return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID deve ter um padrão válido" } });
     }
     const sucesso = await casosRepository.deletar(id);
-    if (sucesso > 0) {
+    if (sucesso === 0) {
       return res.status(404).json({ status: 404, mensagem: "Caso não encontrado" });
     }
     res.status(204).send();
