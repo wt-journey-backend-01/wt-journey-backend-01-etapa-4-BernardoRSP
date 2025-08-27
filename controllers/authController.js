@@ -68,10 +68,10 @@ async function deletarUsuario(req, res) {
   try {
     const { id } = req.params;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID deve ter um padrão válido" } });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: { id: "O ID deve ter um padrão válido" } });
     }
     const sucesso = await usuariosRepository.deletar(id);
-    
+
     if (sucesso === 0) {
       return res.status(404).json({ status: 404, message: "Usuário não encontrado" });
     }

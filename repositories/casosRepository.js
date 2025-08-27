@@ -26,7 +26,7 @@ async function atualizar(dadosAtualizados, id) {
     .where({ id: Number(id) })
     .update(dadosAtualizados)
     .returning("*");
-  return atualizado[0];
+  return atualizado;
 }
 
 // Deletar Caso

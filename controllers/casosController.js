@@ -19,7 +19,7 @@ async function encontrarCaso(req, res) {
   try {
     const { id } = req.params;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID deve ter um padrão válido" } });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: { id: "O ID deve ter um padrão válido" } });
     }
     const caso = await casosRepository.encontrar(id);
     if (!caso) {
@@ -42,7 +42,7 @@ async function adicionarCaso(req, res) {
     const camposPermitidos = ["titulo", "descricao", "status", "agente_id"];
     const campos = Object.keys(req.body);
 
-    if ((campos.some((campo) => !camposPermitidos.includes(campo))) || !titulo || !descricao || !status || !agente_id) {
+    if (campos.some((campo) => !camposPermitidos.includes(campo)) || !titulo || !descricao || !status || !agente_id) {
       erros.geral = "O caso deve conter apenas e obrigatorimente os campos 'titulo', 'descricao', 'status' e 'agente_id'";
     }
 
@@ -77,7 +77,7 @@ async function atualizarCaso(req, res) {
     const { id } = req.params;
     const { titulo, descricao, status, agente_id, id: bodyId } = req.body;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID na URL deve ser um padrão válido" } });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: { id: "O ID na URL deve ser um padrão válido" } });
     }
 
     const erros = {};
@@ -87,7 +87,7 @@ async function atualizarCaso(req, res) {
     if (bodyId) {
       erros.id = "Não é permitido alterar o ID de um caso.";
     }
-    if ((campos.some((campo) => !camposPermitidos.includes(campo))) || !titulo || !descricao || !status || !agente_id) {
+    if (campos.some((campo) => !camposPermitidos.includes(campo)) || !titulo || !descricao || !status || !agente_id) {
       erros.geral = "O caso deve conter apenas e obrigatorimente os campos 'titulo', 'descricao', 'status' e 'agente_id'";
     }
     if (status && status !== "aberto" && status !== "solucionado") {
@@ -102,7 +102,7 @@ async function atualizarCaso(req, res) {
       return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
 
-    const casoAtualizado = await casosRepository.atualizar({ titulo, descricao, status, agente_id }, id);
+    const [casoAtualizado] = await casosRepository.atualizar({ titulo, descricao, status, agente_id }, id);
     if (!casoAtualizado) {
       return res.status(404).json({ status: 404, message: "Caso não encontrado" });
     }
@@ -121,7 +121,7 @@ async function atualizarCasoParcial(req, res) {
     const { id } = req.params;
     const { titulo, descricao, status, agente_id, id: bodyId } = req.body;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID na URL deve ter um padrão válido" } });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: { id: "O ID na URL deve ter um padrão válido" } });
     }
 
     const erros = {};
@@ -156,7 +156,7 @@ async function atualizarCasoParcial(req, res) {
       return res.status(400).json({ status: 400, message: "Nenhum campo válido para atualização foi enviado." });
     }
 
-    const casoAtualizado = await casosRepository.atualizar(dadosAtualizados, id);
+    const [casoAtualizado] = await casosRepository.atualizar(dadosAtualizados, id);
     if (!casoAtualizado) {
       return res.status(404).json({ status: 404, message: "Caso não encontrado" });
     }
@@ -174,13 +174,13 @@ async function deletarCaso(req, res) {
   try {
     const { id } = req.params;
     if (!intPos.test(id)) {
-      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID deve ter um padrão válido" } });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: { id: "O ID deve ter um padrão válido" } });
     }
     const sucesso = await casosRepository.deletar(id);
     if (sucesso === 0) {
       return res.status(404).json({ status: 404, message: "Caso não encontrado" });
     }
-    res.status(204).send();
+    res.status(204).end();
   } catch (error) {
     console.log("Erro referente a: deletarCaso\n");
     console.log(error);
