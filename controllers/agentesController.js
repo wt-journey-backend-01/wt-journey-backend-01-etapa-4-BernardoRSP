@@ -5,6 +5,9 @@ const intPos = /^\d+$/; // Regex para aceitar número inteiro positivo
 async function listarAgentes(req, res) {
   try {
     const agentes = await agentesRepository.listar();
+
+    agentes.forEach((agente) => (agente.dataDeIncorporacao = new Date(agente.dataDeIncorporacao).toISOString().split("T")[0]));
+
     res.status(200).json(agentes);
   } catch (error) {
     console.log("Erro referente a: listarAgentes\n");
@@ -20,7 +23,13 @@ async function encontrarAgente(req, res) {
     if (!intPos.test(id)) {
       return res.status(404).json({ status: 404, mensagem: "Parâmetros inválidos", erros: { id: "O ID deve ter um padrão válido" } });
     }
+
     const agente = await agentesRepository.encontrar(id);
+
+    if (agente) {
+      agente.dataDeIncorporacao = new Date(agente.dataDeIncorporacao).toISOString().split("T")[0];
+    }
+
     if (!agente) {
       return res.status(404).json({ status: 404, mensagem: "Agente não encontrado" });
     }
@@ -42,11 +51,11 @@ async function adicionarAgente(req, res) {
     const campos = Object.keys(req.body);
 
     if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-      erros.geral = "O agente deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
+      erros.CamposNãoPermitidos = "O agente deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
     }
 
     if (!nome || !dataDeIncorporacao || !cargo) {
-      erros.geral = "Os campos 'nome', 'dataDeIncorporacao' e 'cargo' são obrigatórios";
+      erros.CamposObrigatórios = "Os campos 'nome', 'dataDeIncorporacao' e 'cargo' são obrigatórios";
     }
 
     if (dataDeIncorporacao && !dataDeIncorporacao.match(/^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/)) {
@@ -89,10 +98,10 @@ async function atualizarAgente(req, res) {
       erros.id = "Não é permitido alterar o ID de um agente.";
     }
     if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-      erros.geral = "O agente deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
+      erros.CamposNãoPermitidos = "O agente deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
     }
     if (!nome || !dataDeIncorporacao || !cargo) {
-      erros.geral = "Todos os campos são obrigatórios para atualização completa (PUT)";
+      erros.CamposObrigatórios = "Todos os campos são obrigatórios para atualização completa (PUT)";
     }
 
     if (dataDeIncorporacao && !dataDeIncorporacao.match(/^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/)) {
@@ -105,7 +114,7 @@ async function atualizarAgente(req, res) {
       return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: erros });
     }
 
-    const agenteAtualizado = await agentesRepository.atualizar({ nome, dataDeIncorporacao, cargo }, id);
+    const [agenteAtualizado] = await agentesRepository.atualizar({ nome, dataDeIncorporacao, cargo }, id);
     console.log(agenteAtualizado);
 
     if (agenteAtualizado) {
@@ -139,7 +148,7 @@ async function atualizarAgenteParcial(req, res) {
     const campos = Object.keys(req.body);
 
     if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-      erros.geral = "Campos inválidos enviados. Permitidos: 'nome', 'dataDeIncorporacao' e 'cargo";
+      erros.CamposNãoPermitidos = "Campos inválidos enviados. Permitidos: 'nome', 'dataDeIncorporacao' e 'cargo";
     }
 
     if (bodyId) {
@@ -164,7 +173,12 @@ async function atualizarAgenteParcial(req, res) {
       return res.status(400).json({ status: 400, mensagem: "Nenhum campo válido para atualização foi enviado." });
     }
 
-    const agenteAtualizado = await agentesRepository.atualizar(dadosAtualizados, id);
+    const [agenteAtualizado] = await agentesRepository.atualizar(dadosAtualizados, id);
+
+    if (agenteAtualizado) {
+      agenteAtualizado.dataDeIncorporacao = new Date(agenteAtualizado.dataDeIncorporacao).toISOString().split("T")[0];
+    }
+
     if (!agenteAtualizado) {
       return res.status(404).json({ status: 404, mensagem: "Agente não encontrado" });
     }

@@ -13,7 +13,7 @@ async function registrarUsuario(req, res) {
     const campos = Object.keys(req.body);
 
     if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: { geral: "Campos extras não são permitidos" } });
+      return res.status(400).json({ status: 400, mensagem: "Parâmetros inválidos", erros: { CamposNãoPermitidos: "Campos extras não são permitidos" } });
     }
 
     if (!nome || nome.trim() === "") erros.nome = "Nome obrigatório";

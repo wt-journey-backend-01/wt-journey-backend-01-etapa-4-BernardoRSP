@@ -43,10 +43,10 @@ async function adicionarCaso(req, res) {
     const campos = Object.keys(req.body);
 
     if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-      erros.geral = "O caso deve conter apenas os campos 'titulo', 'descricao', 'status' e 'agente_id'";
+      erros.CamposNãoPermitidos = "O caso deve conter apenas os campos 'titulo', 'descricao', 'status' e 'agente_id'";
     }
     if (!titulo || !descricao || !status || !agente_id) {
-      erros.geral = "Os campos 'titulo', 'descricao', 'status' e 'agente_id' são obrigatórios";
+      erros.CamposObrigatórios = "Os campos 'titulo', 'descricao', 'status' e 'agente_id' são obrigatórios";
     }
     if (status && status !== "aberto" && status !== "solucionado") {
       erros.status = "O Status deve ser 'aberto' ou 'solucionado'";
@@ -90,10 +90,10 @@ async function atualizarCaso(req, res) {
       erros.id = "Não é permitido alterar o ID de um caso.";
     }
     if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-      erros.geral = "O caso deve conter apenas os campos 'titulo', 'descricao', 'status' e 'agente_id'";
+      erros.CamposNãoPermitidos = "O caso deve conter apenas os campos 'titulo', 'descricao', 'status' e 'agente_id'";
     }
     if (!titulo || !descricao || !status || !agente_id) {
-      erros.geral = "Todos os campos são obrigatórios para atualização completa (PUT)";
+      erros.CamposObrigatórios = "Todos os campos são obrigatórios para atualização completa (PUT)";
     }
     if (status && status !== "aberto" && status !== "solucionado") {
       erros.status = "O Status deve ser 'aberto' ou 'solucionado'";
@@ -134,7 +134,7 @@ async function atualizarCasoParcial(req, res) {
     const campos = Object.keys(req.body);
 
     if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-      erros.geral = "Campos inválidos enviados. Permitidos: 'titulo', 'descricao', 'status', 'agente_id'";
+      erros.CamposNãoPermitidos = "Campos inválidos enviados. Permitidos: 'titulo', 'descricao', 'status', 'agente_id'";
     }
     if (bodyId) {
       erros.id = "Não é permitido alterar o ID de um caso.";
