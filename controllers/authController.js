@@ -104,7 +104,7 @@ async function deletarUsuario(req, res) {
     if (sucesso === 0) {
       return res.status(404).json({ status: 404, message: "Usuário não encontrado" });
     }
-    return res.status(204).send();
+    return res.status(204).end();
   } catch (error) {
     console.log("Erro referente a: deletarUsuario\n");
     console.log(error);
@@ -115,7 +115,7 @@ async function deletarUsuario(req, res) {
 // Deslogar um Usuário Cadastrado no Sistema
 async function deslogarUsuario(req, res) {
   try {
-    return res.status(204).send();
+    return res.status(204).end();
   } catch (error) {
     console.log("Erro referente a: deslogarUsuario\n");
     console.log(error);

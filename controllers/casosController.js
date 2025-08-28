@@ -39,11 +39,14 @@ async function adicionarCaso(req, res) {
     const { titulo, descricao, status, agente_id } = req.body;
 
     const erros = {};
-    const camposPermitidos = ["titulo", "descricao", "status", "agente_id"];
-    const campos = Object.keys(req.body);
+    //const camposPermitidos = ["titulo", "descricao", "status", "agente_id"];
+    //const campos = Object.keys(req.body);
 
-    if (campos.some((campo) => !camposPermitidos.includes(campo)) || !titulo || !descricao || !status || !agente_id) {
+    /*if (campos.some((campo) => !camposPermitidos.includes(campo)) || !titulo || !descricao || !status || !agente_id) {
       erros.geral = "O caso deve conter apenas e obrigatorimente os campos 'titulo', 'descricao', 'status' e 'agente_id'";
+    }*/
+    if (!titulo || !descricao || !status || !agente_id) {
+      erros.geral = "O caso deve conter obrigatorimente os campos 'titulo', 'descricao', 'status' e 'agente_id'";
     }
 
     if (status && status !== "aberto" && status !== "solucionado") {
@@ -87,8 +90,11 @@ async function atualizarCaso(req, res) {
     if (bodyId) {
       erros.id = "Não é permitido alterar o ID de um caso.";
     }
-    if (campos.some((campo) => !camposPermitidos.includes(campo)) || !titulo || !descricao || !status || !agente_id) {
+    /*if (campos.some((campo) => !camposPermitidos.includes(campo)) || !titulo || !descricao || !status || !agente_id) {
       erros.geral = "O caso deve conter apenas e obrigatorimente os campos 'titulo', 'descricao', 'status' e 'agente_id'";
+    }*/
+    if (!titulo || !descricao || !status || !agente_id) {
+      erros.geral = "O caso deve conter obrigatorimente os campos 'titulo', 'descricao', 'status' e 'agente_id'";
     }
     if (status && status !== "aberto" && status !== "solucionado") {
       erros.status = "O Status deve ser 'aberto' ou 'solucionado'";
@@ -125,12 +131,12 @@ async function atualizarCasoParcial(req, res) {
     }
 
     const erros = {};
-    const camposPermitidos = ["titulo", "descricao", "status", "agente_id"];
-    const campos = Object.keys(req.body);
+    //const camposPermitidos = ["titulo", "descricao", "status", "agente_id"];
+    //const campos = Object.keys(req.body);
 
-    if (campos.some((campo) => !camposPermitidos.includes(campo))) {
+    /*if (campos.some((campo) => !camposPermitidos.includes(campo))) {
       erros.geral = "Campos inválidos enviados. Permitidos: 'titulo', 'descricao', 'status', 'agente_id'";
-    }
+    }*/
     if (bodyId) {
       erros.id = "Não é permitido alterar o ID de um caso.";
     }

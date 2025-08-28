@@ -47,11 +47,15 @@ async function adicionarAgente(req, res) {
   try {
     const { nome, dataDeIncorporacao, cargo } = req.body;
     const erros = {};
-    const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
-    const campos = Object.keys(req.body);
+    //const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
+    //const campos = Object.keys(req.body);
 
-    if (campos.some((campo) => !camposPermitidos.includes(campo)) || !nome || !dataDeIncorporacao || !cargo) {
+    /*if (campos.some((campo) => !camposPermitidos.includes(campo)) || !nome || !dataDeIncorporacao || !cargo) {
       erros.geral = "O agente deve conter apenas e obrigatorimente os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
+    }*/
+
+    if (!nome || !dataDeIncorporacao || !cargo) {
+      erros.geral = "O agente deve conter obrigatorimente os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
     }
 
     if (dataDeIncorporacao && !dataDeIncorporacao.match(/^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/)) {
@@ -87,14 +91,18 @@ async function atualizarAgente(req, res) {
     }
 
     const erros = {};
-    const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
-    const campos = Object.keys(req.body);
+    //const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
+    //const campos = Object.keys(req.body);
 
     if (bodyId) {
       erros.id = "Não é permitido alterar o ID de um agente.";
     }
-    if (campos.some((campo) => !camposPermitidos.includes(campo)) || !nome || !dataDeIncorporacao || !cargo) {
+    /*if (campos.some((campo) => !camposPermitidos.includes(campo)) || !nome || !dataDeIncorporacao || !cargo) {
       erros.geral = "O agente deve conter apenas e obrigatorimente os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
+    }*/
+
+    if (!nome || !dataDeIncorporacao || !cargo) {
+      erros.geral = "O agente deve conter obrigatorimente os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
     }
 
     if (dataDeIncorporacao && !dataDeIncorporacao.match(/^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/)) {
@@ -137,12 +145,12 @@ async function atualizarAgenteParcial(req, res) {
     }
 
     const erros = {};
-    const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
-    const campos = Object.keys(req.body);
+    //const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
+    //const campos = Object.keys(req.body);
 
-    if (campos.some((campo) => !camposPermitidos.includes(campo))) {
+    /*if (campos.some((campo) => !camposPermitidos.includes(campo))) {
       erros.geral = "Campos inválidos enviados. Permitidos: 'nome', 'dataDeIncorporacao' e 'cargo";
-    }
+    }*/
 
     if (bodyId) {
       erros.id = "Não é permitido alterar o ID de um agente.";
@@ -195,7 +203,7 @@ async function deletarAgente(req, res) {
     if (sucesso === 0) {
       return res.status(404).json({ status: 404, message: "Agente não encontrado" });
     }
-    res.status(204).send();
+    res.status(204).end();
   } catch (error) {
     console.log("Erro referente a: deletarAgente\n");
     console.log(error);
