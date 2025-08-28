@@ -45,23 +45,52 @@ async function registrarUsuario(req, res) {
 async function logarUsuario(req, res) {
   try {
     const { email, senha } = req.body;
+    
+    const erros = {};
+    const camposPermitidos = ["email", "senha"];
+    const campos = Object.keys(req.body);
+
+    if(campos.some((campo) => !camposPermitidos.includes(campo))){
+      erros.geral = "Campos não permitidos enviados";
+    }
+    if(!email || email.trim() === ""){
+      erros.email = "E-mail é obrigatório";
+    }
+    if(!senha || senha.trim() === ""){
+      erros.senha = "Senha é obrigatória";
+    }
+    if ((Object.keys(erros).length > 0)) {
+      return res.status(400).json({status: 400, message: "Dados não enviados corretamente", error: erros});
+    }
+
+    // Busca usuário
     const usuario = await usuariosRepository.encontrar(email);
 
-    if (!usuario) return res.status(401).json({ status: 401, message: "Senha e/ou E-mail inválidos" });
-
+    if (!usuario) {
+      return res.status(401).json({ 
+        status: 401, 
+        message: "Credenciais inválidas" 
+      });
+    }    
+    // Valida senha
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
+    if (!senhaValida) {
+      return res.status(401).json({ 
+        status: 401, 
+        message: "Credenciais inválidas" 
+      });
+    }
 
-    if (!senhaValida) return res.status(401).json({ status: 401, message: "Senha e/ou E-mail inválidos" });
+    // Gera token
+    const token = jwt.sign({ id: usuario.id, email: usuario.email },process.env.JWT_SECRET, { expiresIn: "1d" });
 
-    const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1d" });
-
-    return res.status(200).json({ access_token: token });
+    return res.status(200).json({ acess_token: token });
   } catch (error) {
-    console.log("Erro referente a: logarUsuario\n");
-    console.log(error);
+    console.error("Erro referente a: logarUsuario\n", error);
     res.status(500).json({ status: 500, message: "Erro interno do servidor" });
   }
 }
+
 
 // Deletar a Conta de um Usuário
 async function deletarUsuario(req, res) {
