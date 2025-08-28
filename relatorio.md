@@ -1,162 +1,171 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 6 créditos restantes para usar o sistema de feedback AI.
+Você tem 5 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para BernardoRSP:
 
 Nota final: **52.0/100**
 
-```markdown
-# Olá BernardoRSP! 👋🚀
+# Feedback para BernardoRSP 🚓🚀
 
-Primeiramente, parabéns pelo esforço e dedicação até aqui! 🎉 Você já implementou a base da autenticação com JWT, hashing de senha com bcrypt, e estruturou bem seu projeto com controllers, repositories, middlewares e rotas — isso é fundamental para uma aplicação escalável e segura. Além disso, seus testes de usuários (registro, login, logout e deleção) passaram com sucesso, mostrando que você entendeu bem os conceitos de segurança e autenticação! 👏👏
-
----
-
-# ✅ Pontos Fortes que Merecem Destaque
-
-- A autenticação via JWT está funcionando, gerando tokens com expiração, e protegendo as rotas de agentes e casos com o middleware `authMiddleware`.
-- O hashing de senha com bcrypt está correto, garantindo segurança na armazenagem das senhas.
-- As validações básicas de campos obrigatórios e formatos (email, senha, datas) estão implementadas.
-- A estrutura do projeto segue o padrão MVC esperado, com as pastas e arquivos bem organizados.
-- Você conseguiu implementar alguns bônus, como o endpoint `/usuarios/me` e filtros simples, que são diferenciais importantes!
+Olá Bernardo! Antes de mais nada, parabéns pelo esforço e por implementar uma API com autenticação JWT, hashing de senha, proteção de rotas e documentação Swagger! 🎉 Isso já é um baita avanço para uma aplicação profissional.
 
 ---
 
-# ⚠️ Análise dos Testes que Falharam e Oportunidades de Melhoria
+## 🎉 Pontos Positivos e Conquistas Bônus
 
-Os testes que falharam são relacionados principalmente às operações CRUD de **agentes** e **casos** — criação, listagem, busca por ID, atualização (PUT e PATCH) e deleção. Isso indica que, apesar da autenticação estar bem feita, há problemas nas funcionalidades centrais dessas entidades.
-
-Vamos destrinchar os principais motivos e como corrigi-los:
-
----
-
-## 1. **Falhas nas Rotas de Agentes e Casos: Status 400, 404 e 201**
-
-### Sintomas:
-- Ao criar agentes e casos, o status 201 não é retornado corretamente com os dados do recurso criado.
-- Ao buscar, atualizar ou deletar agentes/casos por ID, são retornados status 400 (formato inválido) ou 404 (não encontrado), mesmo para IDs válidos.
-- Atualizações via PUT e PATCH não retornam os dados atualizados corretamente.
-- Algumas validações de payload estão falhando.
-
-### Causa raiz provável:
-Olhando para seu código nos controllers de agentes (`agentesController.js`) e casos (`casosController.js`), vejo que:
-
-- Você está validando o ID com regex `/^\d+$/`, o que é correto, mas pode estar falhando se o ID for passado como número (não string) em alguns testes ou se o ID for inválido (ex: vazio, null).
-- No controller, o método `adicionarAgente` e `adicionarCaso` validam os campos, mas a validação está muito rígida e pode estar rejeitando payloads válidos por causa de campos extras ou ausência de campos opcionais.
-- Nos métodos de atualização (`atualizarAgente`, `atualizarCaso`) você exige que todos os campos obrigatórios estejam presentes no PUT, o que está certo, porém a verificação de campos extras pode estar bloqueando requisições legítimas.
-- O retorno dos objetos criados ou atualizados está correto, mas talvez o banco não esteja inserindo os dados como esperado.
-
-### Recomendações práticas:
-
-- **Validar o ID com mais robustez:**  
-  Além da regex, garanta que o ID seja um número inteiro positivo, por exemplo:
-  ```js
-  const idNum = Number(id);
-  if (!Number.isInteger(idNum) || idNum <= 0) {
-    return res.status(400).json({ status: 400, message: "ID inválido" });
-  }
-  ```
-- **Revisar validação de campos extras:**  
-  No seu código, você rejeita se houver campos extras, mas às vezes clientes enviam campos extras que não são obrigatórios. Pense em permitir campos extras ou ignorá-los ao invés de rejeitar a requisição inteira, por exemplo:
-  ```js
-  const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
-  const camposRecebidos = Object.keys(req.body);
-  const camposInvalidos = camposRecebidos.filter(campo => !camposPermitidos.includes(campo));
-  if (camposInvalidos.length > 0) {
-    return res.status(400).json({ status: 400, message: "Campos extras não permitidos", error: camposInvalidos });
-  }
-  ```
-- **Garantir que a data esteja no formato correto e convertê-la antes de salvar:**  
-  Você já faz isso, mas revise se a data está chegando no formato correto e se está convertendo para `Date` antes de inserir.
-- **No método `adicionarAgente` e `adicionarCaso`, confira o retorno do banco:**  
-  O `returning("*")` do Knex pode retornar um array com um objeto ou só um objeto, dependendo da configuração do banco. Garanta que você está retornando o objeto correto para a resposta:
-  ```js
-  const [novoAgente] = await agentesRepository.adicionar(novoAgente);
-  res.status(201).json(novoAgente);
-  ```
-- **Para os métodos PUT e PATCH, garanta que o objeto retornado do banco não seja `undefined` ou `null` antes de acessar propriedades.**
-- **Nos métodos de deleção, verifique o retorno da operação:**  
-  Se `deletar` retorna 0, significa que o registro não existe, e você deve retornar 404. Isso você já faz, mas confirme se o `deletar` do repositório está funcionando corretamente.
+- Sua implementação do sistema de usuários (registro, login, logout e exclusão) está funcionando bem e passou em todos os testes base relacionados a usuários.
+- O middleware de autenticação JWT está corretamente aplicado nas rotas de agentes e casos, e bloqueia acessos sem token.
+- Você estruturou bem o projeto seguindo a arquitetura MVC, dividindo controllers, repositories, middlewares, rotas e db.
+- Documentação via Swagger está configurada, o que é excelente para uso real.
+- Você implementou os testes de validação de senha com regex adequados.
+- Conseguiu também passar alguns testes bônus importantes como filtragem simples e endpoint `/usuarios/me` — isso mostra que você foi além dos requisitos básicos. Parabéns! 🌟
 
 ---
 
-## 2. **Possível Problema na Migration ou Seed para a Tabela `usuarios`**
+## 🚨 Análise dos Testes que Falharam e Causas Raiz
 
-Você criou a tabela `usuarios` na migration, o que é ótimo! Mas para agentes e casos, a tabela está criada e populada via seeds, e os testes falham para agentes e casos.
+Os testes que falharam são TODOS relacionados a **entidades Agentes e Casos**. Ou seja, seu sistema de autenticação e usuários está OK, mas o CRUD de agentes e casos apresenta problemas.
 
-- Confirme se as migrations foram aplicadas corretamente (`npx knex migrate:latest`).
-- Confirme se os seeds estão rodando e populando as tabelas `agentes` e `casos` com dados válidos.
-- Se as tabelas estiverem vazias, os testes que buscam por ID falharão com 404.
+### Lista dos testes que falharam (resumo):
+
+- Criação, listagem, busca, atualização (PUT e PATCH) e exclusão de agentes e casos com os status codes e formatos corretos.
+- Tratamento correto dos erros 400 (payload incorreto) e 404 (registro não encontrado).
+- Validação de IDs (número inteiro positivo).
+- Validação das requisições PUT e PATCH para agentes e casos.
+- Retorno correto dos dados atualizados ou criados.
+- Exclusão com status 204 e corpo vazio.
+- Rejeição correta de IDs inválidos.
 
 ---
 
-## 3. **Middleware de Autenticação e Proteção das Rotas**
+### Causa raiz provável: **Problemas no tratamento e retorno dos dados de agentes e casos**
 
-Você aplicou o middleware `authMiddleware` nas rotas `/agentes` e `/casos` no `server.js`, o que é correto:
+Ao analisar seu código, percebi que você fez um esforço grande em validar os dados e tratar erros, mas há alguns pontos que podem estar causando falhas em vários testes:
+
+---
+
+### 1. **No Controller de Agentes:**
+
+- Ao adicionar um agente (`adicionarAgente`), você já faz validação e insere com `agentesRepository.adicionar`.  
+- Porém, o retorno do insert no Knex com `.returning("*")` retorna um array, e você está retornando o primeiro elemento. Isso está correto, mas o teste pode estar esperando que o campo `dataDeIncorporacao` seja uma string no formato ISO (sem hora). Você já faz a conversão, mas precisa garantir que o campo enviado e retornado esteja correto.
+
+- Ponto importante: Você converte `dataDeIncorporacao` para `new Date(dataDeIncorporacao)` antes de inserir, mas o Knex pode esperar uma string no formato ISO. No seu código, você faz:
 
 ```js
-app.use("/agentes", authMiddleware, agentesRoutes);
-app.use("/casos", authMiddleware, casosRoutes);
+const novoAgente = { nome, dataDeIncorporacao: new Date(dataDeIncorporacao), cargo };
+const [agenteCriado] = await agentesRepository.adicionar(novoAgente);
 ```
 
-Isso faz com que todas as requisições para agentes e casos exijam token JWT válido, e os testes que tentam acessar sem token retornam 401, que passaram. Ótimo!
+**Sugestão:** Passe a data como string no formato `YYYY-MM-DD` para evitar problemas na inserção.
 
 ---
 
-## 4. **Sugestão para Melhorar as Mensagens de Erro e Validações**
+### 2. **No Controller de Casos:**
 
-- Em alguns controllers, você usa mensagens genéricas como `"Parâmetros inválidos"`. Para melhorar a usabilidade da API, tente detalhar o erro, por exemplo:
+- Na função `adicionarCaso`, você também faz validações e chama o repositório para inserir.  
+- Verifique se o campo `agente_id` está sendo passado como número e não string. Você faz validação com regex, mas na inserção pode ser que esteja enviando string.
 
-```json
-{
-  "status": 400,
-  "message": "Parâmetros inválidos",
-  "error": {
-    "nome": "Nome é obrigatório",
-    "dataDeIncorporacao": "Data inválida"
-  }
+- Além disso, nos métodos de atualização (`atualizarCaso` e `atualizarCasoParcial`) você faz validação de campos, mas não está validando se o agente existe antes de atualizar (exceto em alguns casos). Isso pode causar erros 404 que o teste espera.
+
+---
+
+### 3. **Validação de IDs**
+
+- Em vários controllers você usa regex `intPos = /^\d+$/` para validar IDs. Isso está correto, mas atenção: se o ID for 0, o regex aceita, mas IDs 0 geralmente não existem. Isso não parece ser um problema grave, mas vale ficar atento.
+
+---
+
+### 4. **Retorno dos status codes e payloads**
+
+- Nos endpoints de atualização e criação, o teste espera que o retorno contenha os dados atualizados/criados exatamente como estão no banco.  
+- Você faz algumas conversões no campo `dataDeIncorporacao` para string ISO (sem hora), o que é ótimo, mas certifique-se que isso é feito em todos os retornos, inclusive nos métodos PATCH e PUT.
+
+- Também verifique se você está retornando o status code correto (201 para criação, 200 para atualizações e buscas, 204 para exclusão).
+
+---
+
+### 5. **Middleware de autenticação**
+
+- O middleware está correto e bloqueia acesso sem token, o que foi testado e passou.
+
+---
+
+### 6. **Estrutura do projeto**
+
+- A estrutura do seu projeto está correta conforme o esperado, com pastas e arquivos no lugar certo.  
+- Isso é ótimo e ajuda na organização e manutenção.
+
+---
+
+## Exemplos de ajustes para melhorar
+
+### Ajuste no `adicionarAgente` para garantir formato correto da data:
+
+```js
+const novoAgente = { nome, dataDeIncorporacao, cargo }; // enviar dataDeIncorporacao como string 'YYYY-MM-DD'
+const [agenteCriado] = await agentesRepository.adicionar(novoAgente);
+agenteCriado.dataDeIncorporacao = new Date(agenteCriado.dataDeIncorporacao).toISOString().split("T")[0];
+res.status(201).json(agenteCriado);
+```
+
+### Validação e conversão no `adicionarCaso`:
+
+```js
+const agenteIdNum = Number(agente_id);
+if (isNaN(agenteIdNum)) {
+  return res.status(400).json({ status: 400, message: "agente_id inválido" });
 }
+const agenteDoCaso = await agentesRepository.encontrar(agenteIdNum);
+if (!agenteDoCaso) {
+  return res.status(404).json({ status: 404, message: "Agente não encontrado" });
+}
+const novoCaso = { titulo, descricao, status, agente_id: agenteIdNum };
+const [casoCriado] = await casosRepository.adicionar(novoCaso);
+res.status(201).json(casoCriado);
 ```
-
-Isso ajuda o cliente da API a entender exatamente o que deve corrigir.
 
 ---
 
-# 📚 Recursos que Recomendo para Você Estudar e Refinar Seu Projeto
+## Recursos recomendados para você aprofundar e corrigir os pontos:
 
-- Para entender melhor como lidar com validações e manipulação de dados no Knex e Express, veja este vídeo que explica o **Knex Query Builder**:  
+- Para aprimorar o uso do Knex e manipulação de datas:  
   https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s
 
-- Para aprimorar sua arquitetura MVC e organização de código em Node.js, recomendo este vídeo sobre **Boas Práticas e Refatoração**:  
+- Para entender melhor a arquitetura MVC e organização do projeto:  
   https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s
 
-- Para consolidar seus conhecimentos em **Autenticação com JWT e Hashing de Senhas com bcrypt**, este vídeo, feito pelos meus criadores, explica muito bem os conceitos básicos e fundamentais de cibersegurança:  
-  https://www.youtube.com/watch?v=Q4LQOfYwujk
+- Sobre autenticação JWT e segurança (mesmo que você já tenha avançado, é sempre bom revisar):  
+  https://www.youtube.com/watch?v=Q4LQOfYwujk (vídeo feito pelos meus criadores, fala muito bem sobre conceitos básicos de autenticação)
 
 ---
 
-# 🎯 Resumo dos Principais Pontos para Focar e Melhorar
+## Resumo dos principais pontos para focar:
 
-- [ ] Ajustar validação de IDs para garantir que sejam números inteiros positivos, não só strings com regex.
-- [ ] Revisar validação dos campos enviados no corpo das requisições para agentes e casos, permitindo ou ignorando campos extras em vez de rejeitar.
-- [ ] Confirmar que as migrations e seeds estão aplicadas corretamente, principalmente para tabelas `agentes` e `casos`.
-- [ ] Garantir que os métodos de criação e atualização retornem o objeto correto para a resposta, desestruturando o array retornado do banco.
-- [ ] Melhorar mensagens de erro para serem mais específicas e úteis.
-- [ ] Testar manualmente os endpoints de agentes e casos com ferramentas como Postman ou Insomnia para validar o comportamento esperado.
-- [ ] Continuar estudando os conceitos de autenticação e validação para tornar sua API robusta e segura.
+- [ ] Ajustar o formato da data (`dataDeIncorporacao`) para ser enviado como string no padrão ISO (`YYYY-MM-DD`) para o banco, evitando problemas na inserção e retorno.
+- [ ] Garantir que os IDs (`agente_id`) sejam números e estejam validados antes de inserir ou atualizar casos.
+- [ ] Validar a existência do agente antes de atualizar um caso (PUT e PATCH), para evitar erros 404.
+- [ ] Confirmar que todos os endpoints retornam o status code correto e o payload exatamente como o teste espera (ex: 201 para criação, 200 para busca e atualização, 204 para exclusão).
+- [ ] Revisar o tratamento dos dados retornados para garantir que campos de data estejam no formato correto em todas as respostas.
+- [ ] Testar manualmente os endpoints de agentes e casos para verificar se os erros 400 e 404 são retornados conforme esperado.
+- [ ] Continuar usando middleware de autenticação para proteger rotas (você já está ótimo nisso!).
 
 ---
 
-# Bernardo, você está no caminho certo! 🚀
+## Bernardo, você está no caminho certo! 🚀
 
-Seu domínio sobre autenticação, segurança e organização do projeto já está muito bom, e com esses ajustes nas rotas de agentes e casos, sua API vai ficar redondinha e pronta para produção! Continue praticando e testando bastante, pois a experiência prática é o que mais solidifica o aprendizado.
+Seu código está muito bem organizado e a parte de autenticação está sólida, o que é um dos pontos mais complexos. Agora, o foco é ajustar os detalhes no CRUD de agentes e casos para que os testes passem com sucesso.
 
-Se precisar, volte aos recursos indicados, revise seu código com calma e não hesite em pedir ajuda. Estou aqui para te apoiar! 💪😄
+Continue praticando, testando e refinando. Você já mostrou que sabe estruturar um projeto profissional e implementar segurança de forma correta. Com esses ajustes, sua API vai ficar redondinha!
 
-Um grande abraço e sucesso na jornada! 👮‍♂️👩‍💻✨
-```
+Se precisar, revisite os recursos que indiquei para fortalecer seu conhecimento em Knex, Node.js e autenticação.
 
+Conte comigo para o que precisar! 💪👨‍💻
+
+---
+
+Abraço e bons códigos!  
+Seu Code Buddy 🤖✨
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
