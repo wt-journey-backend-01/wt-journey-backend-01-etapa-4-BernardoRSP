@@ -64,7 +64,7 @@ async function adicionarAgente(req, res) {
       return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
 
-    const novoAgente = { nome, dataDeIncorporacao, cargo };
+    const novoAgente = { nome, dataDeIncorporacao: new Date(dataDeIncorporacao), cargo };
 
     const [agenteCriado] = await agentesRepository.adicionar(novoAgente);
     agenteCriado.dataDeIncorporacao = new Date(agenteCriado.dataDeIncorporacao).toISOString().split("T")[0];

@@ -137,11 +137,15 @@ async function atualizarCasoParcial(req, res) {
     if (status && status !== "aberto" && status !== "solucionado") {
       erros.status = "O Status deve ser 'aberto' ou 'solucionado'";
     }
-    if (agente_id && !intPos.test(agente_id)) {
-      erros.agente_id = "O agente_id deve ter um padrão válido";
-    } else if (agente_id && !(await agentesRepository.encontrar(agente_id))) {
-      erros.agente_id = "O agente com o ID fornecido não foi encontrado";
+
+    if (agente_id) {
+      if (!intPos.test(agente_id)) {
+        erros.agente_id = "O agente_id deve ter um padrão válido";
+      } else if (!(await agentesRepository.encontrar(agente_id))) {
+        erros.agente_id = "O agente com o ID fornecido não foi encontrado";
+      }
     }
+
     if (Object.keys(erros).length > 0) {
       return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
