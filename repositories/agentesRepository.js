@@ -3,30 +3,30 @@ const db = require("../db/db.js");
 // Mostrar Todos os Agentes
 async function listar() {
   const listado = await db("agentes");
-  return listado;
+  return listado.map((agente) => ({...agente, dataDeIncorporacao: new Date(agente.dataDeIncorporacao).toISOString().split("T")[0]}));
 }
 
 // Mostrar Agente Referente ao ID
 async function encontrar(id) {
-  const encontrado = await db("agentes")
+  const [encontrado] = await db("agentes")
     .where({ id: Number(id) })
     .first();
-  return encontrado;
+  return {...encontrado, dataDeIncorporacao: new Date(encontrado.dataDeIncorporacao).toISOString().split("T")[0]};
 }
 
 // Adicionar Novo Agente
 async function adicionar(agente) {
-  const adicionado = await db("agentes").insert(agente).returning("*");
-  return adicionado;
+  const [adicionado] = await db("agentes").insert(agente).returning("*");
+  return {...adicionado, dataDeIncorporacao: new Date(adicionado.dataDeIncorporacao).toISOString().split("T")[0]};
 }
 
 // Atualizar Informações do Agente
 async function atualizar(dadosAtualizados, id) {
-  const atualizado = await db("agentes")
+  const [atualizado] = await db("agentes")
     .where({ id: Number(id) })
     .update(dadosAtualizados)
     .returning("*");
-  return atualizado;
+  return {...atualizado, dataDeIncorporacao: new Date(atualizado.dataDeIncorporacao).toISOString().split("T")[0]};
 }
 
 // Deletar Agente

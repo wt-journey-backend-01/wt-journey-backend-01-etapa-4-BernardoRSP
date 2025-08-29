@@ -39,15 +39,16 @@ async function adicionarCaso(req, res) {
     const { titulo, descricao, status, agente_id } = req.body;
 
     const erros = {};
-    //const camposPermitidos = ["titulo", "descricao", "status", "agente_id"];
-    //const campos = Object.keys(req.body);
+    const camposPermitidos = ["titulo", "descricao", "status", "agente_id"];
+    const campos = Object.keys(req.body);
 
-    /*if (campos.some((campo) => !camposPermitidos.includes(campo)) || !titulo || !descricao || !status || !agente_id) {
-      erros.geral = "O caso deve conter apenas e obrigatorimente os campos 'titulo', 'descricao', 'status' e 'agente_id'";
-    }*/
-    if (!titulo || !descricao || !status || !agente_id) {
-      erros.geral = "O caso deve conter obrigatorimente os campos 'titulo', 'descricao', 'status' e 'agente_id'";
+    if (campos.some((campo) => !camposPermitidos.includes(campo))) {
+      erros.geral = "O caso deve conter apenas os campos 'titulo', 'descricao', 'status' e 'agente_id'";
     }
+    if (!titulo)  erros.titulo = "O campo 'titulo' é obrigatório";
+    if (!descricao)  erros.descricao = "O campo 'descricao' é obrigatório";
+    if (!status)  erros.status = "O campo 'status' é obrigatório";
+    if (!agente_id)  erros.agente_id = "O campo 'agente_id' é obrigatório";
 
     if (status && status !== "aberto" && status !== "solucionado") {
       erros.status = "O Status deve ser 'aberto' ou 'solucionado'";
@@ -90,12 +91,15 @@ async function atualizarCaso(req, res) {
     if (bodyId) {
       erros.id = "Não é permitido alterar o ID de um caso.";
     }
-    /*if (campos.some((campo) => !camposPermitidos.includes(campo)) || !titulo || !descricao || !status || !agente_id) {
-      erros.geral = "O caso deve conter apenas e obrigatorimente os campos 'titulo', 'descricao', 'status' e 'agente_id'";
-    }*/
-    if (!titulo || !descricao || !status || !agente_id) {
-      erros.geral = "O caso deve conter obrigatorimente os campos 'titulo', 'descricao', 'status' e 'agente_id'";
+
+    if (campos.some((campo) => !camposPermitidos.includes(campo))) {
+      erros.geral = "O caso deve conter apenas os campos 'titulo', 'descricao', 'status' e 'agente_id'";
     }
+    if (!titulo)  erros.titulo = "O campo 'titulo' é obrigatório";
+    if (!descricao)  erros.descricao = "O campo 'descricao' é obrigatório";
+    if (!status)  erros.status = "O campo 'status' é obrigatório";
+    if (!agente_id)  erros.agente_id = "O campo 'agente_id' é obrigatório";
+
     if (status && status !== "aberto" && status !== "solucionado") {
       erros.status = "O Status deve ser 'aberto' ou 'solucionado'";
     }

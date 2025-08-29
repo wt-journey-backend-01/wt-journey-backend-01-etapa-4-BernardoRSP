@@ -1,12 +1,11 @@
 const agentesRepository = require("../repositories/agentesRepository.js");
 const intPos = /^\d+$/; // Regex para aceitar número inteiro positivo
+const FormatoData = /^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/; // Regex para aceitar data no formato YYYY-MM-DD
 
 // Mostrar Todos os Agentes
 async function listarAgentes(req, res) {
   try {
     const agentes = await agentesRepository.listar();
-
-    agentes.forEach((agente) => (agente.dataDeIncorporacao = new Date(agente.dataDeIncorporacao).toISOString().split("T")[0]));
 
     res.status(200).json(agentes);
   } catch (error) {
@@ -47,18 +46,18 @@ async function adicionarAgente(req, res) {
   try {
     const { nome, dataDeIncorporacao, cargo } = req.body;
     const erros = {};
-    //const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
-    //const campos = Object.keys(req.body);
+    const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
+    const campos = Object.keys(req.body);
 
-    /*if (campos.some((campo) => !camposPermitidos.includes(campo)) || !nome || !dataDeIncorporacao || !cargo) {
-      erros.geral = "O agente deve conter apenas e obrigatorimente os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
-    }*/
-
-    if (!nome || !dataDeIncorporacao || !cargo) {
-      erros.geral = "O agente deve conter obrigatorimente os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
+    if (campos.some((campo) => !camposPermitidos.includes(campo))) {
+      erros.geral = "O agente deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
     }
 
-    if (dataDeIncorporacao && !dataDeIncorporacao.match(/^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/)) {
+    if (!nome)  erros.nome = "O campo 'nome' é obrigatório";
+    if (!dataDeIncorporacao)  erros.dataDeIncorporacao = "O campo 'dataDeIncorporacao' é obrigatório";
+    if (!cargo)  erros.cargo = "O campo 'cargo' é obrigatório";
+
+    if (dataDeIncorporacao && !dataDeIncorporacao.match(FormatoData)) {
       erros.dataDeIncorporacao = "A data de incorporação deve ser uma data válida no formato AAAA-MM-DD";
     } else if (new Date(dataDeIncorporacao) > new Date()) {
       erros.dataDeIncorporacao = "A data de incorporação não pode ser uma data futura";
@@ -68,12 +67,12 @@ async function adicionarAgente(req, res) {
       return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
 
-    const novoAgente = { nome, dataDeIncorporacao: new Date(dataDeIncorporacao), cargo };
+    const novoAgente = { nome, dataDeIncorporacao, cargo };
 
-    const [agenteCriado] = await agentesRepository.adicionar(novoAgente);
-    agenteCriado.dataDeIncorporacao = new Date(agenteCriado.dataDeIncorporacao).toISOString().split("T")[0];
+    const agenteCriado = await agentesRepository.adicionar(novoAgente);
     res.status(201).json(agenteCriado);
-  } catch (error) {
+
+  }catch (error) {
     console.log("Erro referente a: adicionarAgente\n");
     console.log(error);
     res.status(500).json({ status: 500, message: "Erro interno do servidor" });
@@ -91,21 +90,23 @@ async function atualizarAgente(req, res) {
     }
 
     const erros = {};
-    //const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
-    //const campos = Object.keys(req.body);
+    const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
+    const campos = Object.keys(req.body);
 
     if (bodyId) {
       erros.id = "Não é permitido alterar o ID de um agente.";
     }
-    /*if (campos.some((campo) => !camposPermitidos.includes(campo)) || !nome || !dataDeIncorporacao || !cargo) {
-      erros.geral = "O agente deve conter apenas e obrigatorimente os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
-    }*/
 
-    if (!nome || !dataDeIncorporacao || !cargo) {
-      erros.geral = "O agente deve conter obrigatorimente os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
+    if (campos.some((campo) => !camposPermitidos.includes(campo))) {
+      erros.geral = "O agente deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
     }
 
-    if (dataDeIncorporacao && !dataDeIncorporacao.match(/^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/)) {
+    if (!nome)  erros.nome = "O campo 'nome' é obrigatório";
+    if (!dataDeIncorporacao)  erros.dataDeIncorporacao = "O campo 'dataDeIncorporacao' é obrigatório";
+    if (!cargo)  erros.cargo = "O campo 'cargo' é obrigatório";
+
+
+    if (dataDeIncorporacao && !dataDeIncorporacao.match(FormatoData)) {
       erros.dataDeIncorporacao = "A data de incorporação deve ser uma data válida no formato AAAA-MM-DD";
     } else if (new Date(dataDeIncorporacao) > new Date()) {
       erros.dataDeIncorporacao = "A data de incorporação não pode ser uma data futura";
@@ -115,12 +116,8 @@ async function atualizarAgente(req, res) {
       return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
 
-    const [agenteAtualizado] = await agentesRepository.atualizar({ nome, dataDeIncorporacao, cargo }, id);
+    const agenteAtualizado = await agentesRepository.atualizar({ nome, dataDeIncorporacao, cargo }, id);
     console.log(agenteAtualizado);
-
-    if (agenteAtualizado) {
-      agenteAtualizado.dataDeIncorporacao = new Date(agenteAtualizado.dataDeIncorporacao).toISOString().split("T")[0];
-    }
 
     if (!agenteAtualizado) {
       return res.status(404).json({ status: 404, message: "Agente não encontrado" });
@@ -156,7 +153,7 @@ async function atualizarAgenteParcial(req, res) {
       erros.id = "Não é permitido alterar o ID de um agente.";
     }
 
-    if (dataDeIncorporacao && !dataDeIncorporacao.match(/^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/)) {
+    if (dataDeIncorporacao && !dataDeIncorporacao.match(FormatoData)) {
       erros.dataDeIncorporacao = "A data de incorporação deve ser uma data válida no formato AAAA-MM-DD";
     } else if (new Date(dataDeIncorporacao) > new Date()) {
       erros.dataDeIncorporacao = "A data de incorporação não pode ser uma data futura";
@@ -174,11 +171,7 @@ async function atualizarAgenteParcial(req, res) {
       return res.status(400).json({ status: 400, message: "Nenhum campo válido para atualização foi enviado." });
     }
 
-    const [agenteAtualizado] = await agentesRepository.atualizar(dadosAtualizados, id);
-
-    if (agenteAtualizado) {
-      agenteAtualizado.dataDeIncorporacao = new Date(agenteAtualizado.dataDeIncorporacao).toISOString().split("T")[0];
-    }
+    const agenteAtualizado = await agentesRepository.atualizar(dadosAtualizados, id);
 
     if (!agenteAtualizado) {
       return res.status(404).json({ status: 404, message: "Agente não encontrado" });
