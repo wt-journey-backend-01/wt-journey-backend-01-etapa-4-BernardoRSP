@@ -84,7 +84,7 @@ async function logarUsuario(req, res) {
     // Gera token
     const token = jwt.sign({ id: usuario.id, email: usuario.email },process.env.JWT_SECRET, { expiresIn: "1d" });
 
-    return res.status(200).json({ acess_token: token });
+    return res.status(200).json({ access_token: token });
   } catch (error) {
     console.error("Erro referente a: logarUsuario\n", error);
     res.status(500).json({ status: 500, message: "Erro interno do servidor" });
