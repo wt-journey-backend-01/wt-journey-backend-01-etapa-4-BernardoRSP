@@ -1,212 +1,173 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 4 créditos restantes para usar o sistema de feedback AI.
+Você tem 3 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para BernardoRSP:
 
 Nota final: **52.0/100**
 
-Olá, BernardoRSP! 👋🚓
+Olá, BernardoRSP! 👋🚀
 
-Primeiramente, parabéns pelo esforço e pelo que você já conseguiu implementar! 🎉 Você teve sucesso em vários pontos importantes, especialmente na parte de autenticação de usuários com JWT, logout, e exclusão de usuários. Isso mostra que você entendeu bem a segurança básica e o fluxo de autenticação, que são fundamentais para uma aplicação segura. Além disso, você estruturou seu projeto de forma bastante organizada e clara, o que facilita muito a manutenção e evolução do código.
-
-Também quero destacar que você avançou nos bônus, como a filtragem de casos e agentes e o endpoint `/usuarios/me` para retornar dados do usuário logado — mesmo que alguns testes bônus não tenham passado, o fato de você ter tentado essas funcionalidades mostra dedicação e vontade de ir além! 🚀
+Antes de tudo, parabéns pelo empenho e dedicação em construir essa API segura e funcional! Você conseguiu implementar a autenticação com JWT, hashing de senha com bcrypt e até o logout do usuário — isso já é um baita avanço! 🎉 Também vejo que sua estrutura de pastas está bem alinhada com o esperado, e isso é fundamental para manter o projeto organizado e escalável. Além disso, os testes básicos de usuários passaram, o que mostra que sua parte de autenticação está bem encaminhada. Mandou muito bem! 👏
 
 ---
 
-## Agora, vamos analisar juntos os pontos onde o sistema apresentou dificuldades, para você entender o que pode melhorar e destravar essas funcionalidades! 🕵️‍♂️
+### Agora, vamos juntos entender onde estão os pontos para melhorar e destravar sua nota! 💪🔍
 
 ---
 
-# 1. Testes Base que Falharam: Análise e Causas Raiz
+# 1. Testes que falharam: O que eles testam e o que pode estar causando falhas?
 
-Você teve falhas em vários testes que cobrem as operações CRUD para agentes e casos. São testes fundamentais para garantir que sua API está funcionando corretamente e de forma segura.
+Você teve falhas principalmente nos testes relacionados a **Agentes** e **Casos** — criação, listagem, busca, atualização (PUT e PATCH) e deleção, além de validações de parâmetros inválidos e inexistentes. Isso indica que a lógica dessas rotas e seus controllers/repositories precisam de ajustes.
 
-### Principais grupos de testes que falharam:
-- **AGENTS (Agentes):** criação, listagem, busca por ID, atualização (PUT e PATCH), deleção e validações de erros (400 e 404).
-- **CASES (Casos):** criação, listagem, busca por ID, atualização (PUT e PATCH), deleção e validações de erros (400 e 404).
+**Principais testes que falharam:**
+
+- Criação, listagem, busca, atualização e deleção de agentes e casos.
+- Validações de payloads incorretos (400 Bad Request).
+- Respostas corretas para IDs inválidos e inexistentes (404 Not Found).
+- Autorização (401) para acessar rotas protegidas (ok, você passou aqui!).
 
 ---
 
-### Por que esses testes falharam? Vamos destrinchar!
+# 2. Análise detalhada dos problemas e sugestões para correção
 
----
+### 2.1 Criação e atualização de agentes e casos — cuidado com validações e payloads
 
-## 1.1. Agentes: Criação, Listagem e Busca por ID
-
-Você implementou os controladores e rotas para agentes, mas os testes indicam falhas em criar agentes com status 201, listar todos e buscar por ID.
-
-### Causa raiz provável:
-
-- **Validação dos campos:**  
-  No controlador `adicionarAgente`, você tem validações que, embora estejam corretas, possuem comentários de código que indicam que você chegou a validar campos extras, mas não está validando estritamente o formato do corpo da requisição. O teste espera que, se campos extras forem enviados, a API retorne erro 400, mas seu código está comentado esse trecho.
-
-- **Formato da data:**  
-  Você transforma a data para ISO string ao listar, mas no banco, o campo é `date`. Se a data for enviada em outro formato, pode causar inconsistência.
-
-- **No repositório:**  
-  O método `adicionar` usa `returning("*")`, o que é correto, mas pode ser que o teste espere que o objeto retornado tenha exatamente os mesmos campos e formatos.
-
-### Exemplo do seu código:
+Pelo que vi nos seus controllers (`agentesController.js` e `casosController.js`), você tem validações para campos obrigatórios e formatos, o que é ótimo. Porém, há algumas partes comentadas que indicam que você tentou validar campos extras, mas deixou desativado:
 
 ```js
-async function adicionarAgente(req, res) {
-  // ...
-  if (!nome || !dataDeIncorporacao || !cargo) {
-    erros.geral = "O agente deve conter obrigatorimente os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
-  }
-  // ...
-  const novoAgente = { nome, dataDeIncorporacao: new Date(dataDeIncorporacao), cargo };
-  const [agenteCriado] = await agentesRepository.adicionar(novoAgente);
-  agenteCriado.dataDeIncorporacao = new Date(agenteCriado.dataDeIncorporacao).toISOString().split("T")[0];
-  res.status(201).json(agenteCriado);
+//const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
+//const campos = Object.keys(req.body);
+
+/*if (campos.some((campo) => !camposPermitidos.includes(campo)) || !nome || !dataDeIncorporacao || !cargo) {
+  erros.geral = "O agente deve conter apenas e obrigatorimente os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
+}*/
+```
+
+E o mesmo ocorre no controller de casos. Isso pode fazer com que a API aceite campos extras no corpo da requisição, o que pode estar quebrando os testes que esperam erro 400 para payloads inválidos.
+
+**Por que isso é importante?**  
+Os testes esperam que, se o cliente enviar campos extras ou faltar algum obrigatório, a API retorne erro 400 com mensagem clara. Como você comentou essa validação, pode estar permitindo payloads incorretos e, por isso, os testes falham.
+
+**Sugestão:**  
+Descomente e ajuste essa validação para garantir que só os campos permitidos sejam aceitos e que os obrigatórios estejam presentes.
+
+Exemplo para agentes:
+
+```js
+const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
+const campos = Object.keys(req.body);
+
+if (campos.some(campo => !camposPermitidos.includes(campo)) || !nome || !dataDeIncorporacao || !cargo) {
+  erros.geral = "O agente deve conter apenas e obrigatoriamente os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
 }
 ```
 
-**Sugestão:**  
-- Descomente e ajuste a validação para rejeitar campos extras, pois o teste espera isso.  
-- Garanta que a data seja sempre enviada e retornada no formato `YYYY-MM-DD` sem hora, para evitar divergências.  
-- Verifique se o seu banco está recebendo a data no formato correto.
+E faça o mesmo para os casos.
 
 ---
 
-## 1.2. Agentes: Atualização Completa (PUT) e Parcial (PATCH)
+### 2.2 Validação de IDs e respostas 404
 
-Falhas indicam que as atualizações não estão retornando status 200 com os dados atualizados, ou retornam erros 400/404 incorretos.
+Você está usando regex para validar IDs (ótimo!), mas é importante garantir que essa validação seja consistente em todos os endpoints, inclusive para PUT, PATCH e DELETE.
 
-### Causa raiz provável:
+Além disso, nos seus controllers, quando o registro não é encontrado, você retorna 404, o que está correto.
 
-- **Validação rigorosa:**  
-  Você está validando campos obrigatórios no PUT, o que está certo, mas o teste pode estar enviando payloads que contêm campos extras, e seu código tem essa validação comentada.  
-- **No PATCH, o teste espera que o endpoint aceite atualização parcial, mas você pode estar rejeitando campos extras ou não tratando corretamente a ausência de campos.**
+No entanto, vale reforçar que, em casos de atualização (PUT/PATCH), se o ID for inválido, o retorno deve ser 400 (parâmetro inválido), e se o ID for válido mas não existir no banco, deve ser 404.
 
-### Exemplo do seu código:
+**Dica:** reveja o fluxo das validações para garantir que essas respostas estejam sendo enviadas corretamente.
+
+---
+
+### 2.3 Resposta correta nos endpoints de criação (POST)
+
+Os testes esperam que, ao criar um agente ou caso, você retorne status **201 Created** e o objeto criado com todos os dados, incluindo o ID gerado.
+
+Você já está fazendo isso, mas vale conferir se o objeto retornado está exatamente igual ao esperado, sem alterações indevidas nos campos.
+
+No seu código, você faz um ajuste na data para o agente:
 
 ```js
-if (bodyId) {
-  erros.id = "Não é permitido alterar o ID de um agente.";
-}
-
-// if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-//   erros.geral = "Campos inválidos enviados. Permitidos: 'nome', 'dataDeIncorporacao' e 'cargo";
-// }
+agenteCriado.dataDeIncorporacao = new Date(agenteCriado.dataDeIncorporacao).toISOString().split("T")[0];
 ```
 
-**Sugestão:**  
-- Reative as validações de campos extras e ajuste para que o retorno seja 400 quando campos inválidos forem enviados.  
-- No PATCH, garanta que pelo menos um campo válido seja enviado para atualização, e rejeite campos extras.  
-- Sempre retorne o agente atualizado no formato esperado.
+Isso é legal para padronizar a data, porém, certifique-se de que isso não está alterando o formato esperado pelos testes.
 
 ---
 
-## 1.3. Agentes: Deleção e Validação de IDs
+### 2.4 Atualização parcial (PATCH) e completa (PUT)
 
-Os testes esperam status 204 com corpo vazio ao deletar, e 404 ou 400 para IDs inválidos ou inexistentes.
+Nos seus controllers, você tem funções separadas para atualizar parcialmente e completamente. Isso é correto.
 
-### Causa raiz provável:
+Porém, ao atualizar parcialmente, você permite que o corpo da requisição tenha campos opcionais, mas precisa garantir que:
 
-- Seu código parece tratar bem essas situações, mas garanta que o parâmetro `id` está validado corretamente como número inteiro positivo.  
-- Verifique se o `agentesRepository.deletar` retorna o valor correto (quantidade de linhas afetadas).
+- Não sejam enviados campos extras (você comentou essa validação).
+- Que, se nenhum campo válido for enviado, retorne erro 400.
+- Que a validação do formato dos campos enviados seja feita (exemplo: data no formato correto, status válido).
 
----
-
-## 1.4. Casos: Criação, Listagem, Busca, Atualização e Deleção
-
-Falhas similares às dos agentes, com erros 400 e 404 em payloads inválidos, IDs inválidos e inexistentes.
-
-### Causa raiz provável:
-
-- Validação dos campos e IDs, especialmente do `agente_id`, que deve existir.  
-- Você faz essa validação no controlador, mas o teste pode estar enviando dados que não passam essa validação.  
-- Possível problema ao atualizar com PUT e PATCH, pois o teste espera que campos extras sejam rejeitados.
+Assim, os testes que esperam erro 400 para payloads inválidos poderão passar.
 
 ---
 
-## 1.5. Proteção das Rotas com Middleware de Autenticação
+### 2.5 Middleware de autenticação
 
-Os testes que passaram indicam que o middleware está funcionando, bloqueando acesso sem token, o que é ótimo!
-
----
-
-# 2. Estrutura de Diretórios e Arquivos
-
-Sua estrutura está muito próxima do esperado, parabéns! 👏
-
-Só fique atento para:
-
-- Ter o arquivo `.env` na raiz (não enviado aqui, mas essencial para o JWT_SECRET).  
-- O middleware `authMiddleware.js` está presente e aplicado corretamente.  
-- O arquivo `authRoutes.js` está no lugar correto e com as rotas necessárias.
+Você passou nos testes que verificam a proteção das rotas com JWT, o que é excelente! Seu middleware está simples e direto, funcionando bem para verificar o token e adicionar `req.user`.
 
 ---
 
-# 3. Recomendações e Recursos para Você Avançar 🚀
+### 2.6 Documentação e instruções
 
-### Sobre validação rigorosa de payloads e tratamento de erros:
+Seu arquivo `INSTRUCTIONS.md` está bem completo para o setup do banco, mas não vi a parte que explica como usar autenticação com JWT, exemplos de registro, login e envio do token no header `Authorization`.
 
-- Recomendo revisar o vídeo sobre **Refatoração e Boas Práticas de Código**, que vai te ajudar a estruturar melhor essas validações e evitar campos extras:  
+Os testes pedem que essa documentação esteja presente para o projeto estar completo.
+
+---
+
+# 3. Pontos extras que você conquistou — parabéns! 🎉
+
+- Implementou corretamente o registro, login, logout e exclusão de usuários com validações de senha fortes.
+- Protegeu rotas de agentes e casos com middleware de autenticação JWT.
+- Validou corretamente os tokens e enviou respostas adequadas para erros de autenticação.
+- Seguiu a estrutura de pastas recomendada, deixando o projeto organizado.
+- Usou Knex para migrations e seeds, conectando ao PostgreSQL via Docker.
+- Passou todos os testes básicos de usuários e proteção das rotas.
+
+---
+
+# 4. Recomendações de estudo para você avançar ainda mais 📚
+
+- Para garantir que suas validações de payload estejam corretas e evitar campos extras, recomendo rever esse vídeo sobre **Refatoração e Boas Práticas de Código** (MVC e validações):  
 https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s
 
-### Sobre autenticação e uso correto de JWT e bcrypt:
-
-- Seu uso está muito bom, mas para aprofundar e garantir segurança, veja este vídeo dos meus criadores sobre autenticação:  
+- Para aprimorar seu entendimento sobre autenticação JWT e segurança, este vídeo, feito pelos meus criadores, é ótimo:  
 https://www.youtube.com/watch?v=Q4LQOfYwujk
 
-- Para entender mais sobre JWT na prática, recomendo:  
-https://www.youtube.com/watch?v=keS0JWOypIU
-
-- E para o uso combinado de JWT e bcrypt, que é essencial para login seguro:  
-https://www.youtube.com/watch?v=L04Ln97AwoY
-
-### Sobre configuração do banco, migrations e seeds:
-
-- Se você quiser garantir que as migrations e seeds estejam 100%, este vídeo sobre configuração com Docker e Knex é ótimo:  
-https://www.youtube.com/watch?v=uEABDBQV-Ek&t=1s
-
-- E para entender melhor o Knex Query Builder, que você usa nos repositórios:  
+- Para entender melhor como usar Knex para manipular o banco e garantir o retorno correto dos dados, veja este tutorial:  
 https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s
 
 ---
 
-# 4. Exemplos de Ajustes Práticos
+# 5. Resumo rápido dos principais pontos para focar:
 
-### Exemplo para validar campos extras no `registrarUsuario` (authController.js):
+- ✅ Descomente e ajuste as validações de campos permitidos e obrigatórios nos controllers de agentes e casos para garantir que payloads inválidos retornem erro 400.
 
-```js
-const camposPermitidos = ["nome", "email", "senha"];
-const campos = Object.keys(req.body);
+- ✅ Garanta validação consistente de IDs em todos os endpoints, retornando 400 para IDs inválidos e 404 para IDs inexistentes.
 
-if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-  return res.status(400).json({
-    status: 400,
-    message: "Parâmetros inválidos",
-    error: { CamposNãoPermitidos: "Campos extras não são permitidos" }
-  });
-}
-```
+- ✅ Confira se o objeto retornado nas criações e atualizações está exatamente no formato esperado pelos testes, especialmente datas.
 
-Faça algo similar para os controladores de agentes e casos, tanto no POST, PUT e PATCH.
+- ✅ Complete o arquivo `INSTRUCTIONS.md` com instruções claras sobre autenticação: registro, login, uso do token JWT no header `Authorization` e fluxo esperado.
+
+- ✅ Continue usando o middleware de autenticação para proteger rotas, pois está funcionando bem.
 
 ---
 
-# 5. Resumo Rápido dos Principais Pontos para Focar
+Bernardo, seu projeto está muito bem encaminhado! Você já tem a base sólida de autenticação e segurança, que é o coração dessa etapa. Agora, com as correções nas validações e ajustes finos, você vai conseguir passar todos os testes base e ainda abrir caminho para os bônus.
 
-- **Reative e ajuste as validações de campos extras** nos endpoints de agentes e casos para garantir que o payload seja estritamente o esperado.  
-- **Garanta o formato correto da data** ao enviar e retornar agentes (YYYY-MM-DD).  
-- **Valide IDs corretamente** como números inteiros positivos em todos os endpoints.  
-- **Retorne os dados atualizados corretamente** após PUT e PATCH, conforme esperado pelos testes.  
-- **Verifique se o middleware de autenticação está aplicado e funcionando** (já está, parabéns!).  
-- **Mantenha o segredo do JWT somente no `.env`**, nunca no código.  
-- **Revise as mensagens de erro para que sejam claras e condizentes com os testes** (400 para payload inválido, 404 para não encontrado, 401 para token inválido).  
-- **Continue explorando os bônus e funcionalidades extras**, como filtragem e endpoint `/usuarios/me`.
+Continue assim, aprendendo com cada desafio — você está no caminho certo para se tornar um desenvolvedor Node.js super competente! 🚀💙
 
----
+Se precisar, volte para mim que vamos destravar isso juntos! 😉
 
-Bernardo, seu projeto está muito bem encaminhado! Com esses ajustes nas validações e atenção aos detalhes do formato dos dados e respostas, você vai destravar todos esses testes e entregar uma API segura, robusta e profissional.
-
-Continue firme, você está no caminho certo! Se precisar, volte aos vídeos recomendados para reforçar os conceitos e boas práticas.
-
-Um forte abraço e sucesso! 💪🚀✨
+Um abraço e bons códigos! 👨‍💻✨
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
