@@ -29,7 +29,8 @@ async function registrarUsuario(req, res) {
       return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: { email: "O usuário já está cadastrado" } });
     }
 
-    const hashed = await bcrypt.hash(senha, 10);
+    const salt = await bcrypt.genSalt(10);
+    const hashed = await bcrypt.hash(senha, salt);
 
     const novoUsuario = { nome, email, senha: hashed };
     const usuarioCriado = await usuariosRepository.registrar(novoUsuario);
