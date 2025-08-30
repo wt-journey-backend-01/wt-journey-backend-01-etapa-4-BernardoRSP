@@ -2,21 +2,17 @@
 
 # 🧪 Relatório de Avaliação – Journey Levty Etapa 1 - BernardoRSP
 
-**Data:** 30/08/2025 18:58
+**Data:** 30/08/2025 19:14
 
-**Nota Final:** `82.45/100`
+**Nota Final:** `87.05/100`
 **Status:** ✅ Aprovado
 
 ---
 ## ✅ Requisitos Obrigatórios
-- Foram encontrados `12` problemas nos requisitos obrigatórios. Veja abaixo os testes que falharam:
-  - ⚠️ **Falhou no teste**: `USERS: Recebe erro 400 ao tentar criar um usuário com e-mail já em uso`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
+- Foram encontrados `9` problemas nos requisitos obrigatórios. Veja abaixo os testes que falharam:
   - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 400 ao tentar criar agente com payload em formato incorreto`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `AGENTS: Recebe status 404 ao tentar buscar um agente inexistente`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 400 ao tentar atualizar agente por completo com método PUT e payload em formato incorreto`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 404 ao tentar atualizar agente por completo com método PUT de agente inexistente`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
@@ -24,15 +20,13 @@
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 404 ao tentar atualizar agente por parcialmente com método PATCH de agente inexistente`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
+  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 400 ao tentar criar caso com payload em formato incorreto`
+    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar criar caso com ID de agente inexistente`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar criar caso com ID de agente inválido`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
   - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar buscar um caso por ID inválido`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar atualizar um caso por completo com método PUT de um caso com ID inválido`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar atualizar um caso parcialmente com método PATCH de um caso com ID inválido`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
 
 ## ⭐ Itens de Destaque (recupera até 40 pontos)
