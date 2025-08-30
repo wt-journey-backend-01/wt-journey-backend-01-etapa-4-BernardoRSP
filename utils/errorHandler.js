@@ -1,15 +1,81 @@
-// Captura erros que ocorrem na aplicação.
-function errorHandler(err, req, res, next) {
-  console.error(err.stack); // Loga o erro no console para debug
+class APIError extends Error {
+  constructor(status, message, errors) {
+    super(status, message, errors);
 
-  // Se o erro já tiver um status, usa ele. Senão, assume erro 500.
-  const statusCode = err.statusCode || 500;
-  const message = err.message || "Ocorreu um erro interno no servidor.";
-
-  res.status(statusCode).json({
-    status: statusCode,
-    message: message,
-  });
+    this.status = status;
+    this.message = message;
+    this.errors = errors;
+  }
 }
 
-module.exports = errorHandler;
+class InvalidIdError extends APIError {
+  constructor(errors) {
+    super(404, "ID inválido", errors);
+  }
+}
+
+class IdNotFoundError extends APIError {
+  constructor(errors) {
+    super(404, "ID inexistente", errors);
+  }
+}
+
+class InvalidFormatError extends APIError {
+  constructor(errors) {
+    super(400, "Parâmetros inválidos", errors);
+  }
+}
+
+class InvalidQueryError extends APIError {
+  constructor(errors) {
+    super(400, "Query inválida", errors);
+  }
+}
+
+class NotFoundRouteError extends APIError {
+  constructor(errors) {
+    super(404, "Endpoint inexistente", errors);
+  }
+}
+
+class EmailExistsError extends APIError {
+  constructor(errors) {
+    super(400, "Email existente", errors);
+  }
+}
+
+class UserNotFoundError extends APIError {
+  constructor(errors) {
+    super(401, "Usuário não encontrado", errors);
+  }
+}
+
+class InvalidPasswordError extends APIError {
+  constructor(errors) {
+    super(401, "Senha inválida", errors);
+  }
+}
+
+class TokenError extends APIError {
+  constructor(errors) {
+    super(401, "Token inválido", errors);
+  }
+}
+
+function errorHandler(err, req, res, next) {
+  const { status, message, errors } = err;
+  res.status(status || 500).send({ status, message, errors });
+}
+
+module.exports = {
+  errorHandler,
+  TokenError,
+  InvalidPasswordError,
+  UserNotFoundError,
+  EmailExistsError,
+  NotFoundRouteError,
+  InvalidQueryError,
+  InvalidFormatError,
+  IdNotFoundError,
+  InvalidIdError,
+};

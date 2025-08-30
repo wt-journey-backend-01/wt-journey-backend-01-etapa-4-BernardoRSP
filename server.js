@@ -9,7 +9,7 @@ const casosRoutes = require("./routes/casosRoutes.js");
 const authRoutes = require("./routes/authRoutes.js");
 
 const setupSwagger = require("./docs/swagger.js");
-const errorHandler = require("./utils/errorHandler.js");
+const { errorHandler } = require("./utils/errorHandler.js");
 
 app.use(express.json());
 
