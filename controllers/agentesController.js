@@ -30,7 +30,7 @@ async function encontrarAgente(req, res) {
     }
 
     if (!agente) {
-      return res.status(404).json({ status: 404, message: "Agente não encontrado" });
+      return res.status(400).json({ status: 400, message: "Agente não encontrado" });
     }
 
     res.status(200).json(agente);
