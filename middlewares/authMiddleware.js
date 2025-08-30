@@ -9,7 +9,7 @@ function authMiddleware(req, res, next) {
     const token = cookieToken || headerToken;
 
     if (!token) {
-      return next(res.status(401).json({ status: 401, message: "Token Necessário" }));
+      return res.status(401).json({ status: 401, message: "Token Necessário" });
     }
 
     req.user = jwt.verify(token, process.env.JWT_SECRET);
