@@ -1,6 +1,6 @@
 class ApiError extends Error {
   constructor(message, status, errors) {
-    super(message, status, errors);
+    super(message);
 
     this.status = status;
     this.message = message;
