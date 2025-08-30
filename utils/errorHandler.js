@@ -1,4 +1,4 @@
-class APIError extends Error {
+class ApiError extends Error {
   constructor(status, message, errors) {
     super(status, message, errors);
 
@@ -8,55 +8,55 @@ class APIError extends Error {
   }
 }
 
-class InvalidIdError extends APIError {
+class InvalidIdError extends ApiError {
   constructor(errors) {
     super(404, "ID inválido", errors);
   }
 }
 
-class IdNotFoundError extends APIError {
+class IdNotFoundError extends ApiError {
   constructor(errors) {
     super(404, "ID inexistente", errors);
   }
 }
 
-class InvalidFormatError extends APIError {
+class InvalidFormatError extends ApiError {
   constructor(errors) {
     super(400, "Parâmetros inválidos", errors);
   }
 }
 
-class InvalidQueryError extends APIError {
+class InvalidQueryError extends ApiError {
   constructor(errors) {
     super(400, "Query inválida", errors);
   }
 }
 
-class NotFoundRouteError extends APIError {
+class NotFoundRouteError extends ApiError {
   constructor(errors) {
     super(404, "Endpoint inexistente", errors);
   }
 }
 
-class EmailExistsError extends APIError {
+class EmailExistsError extends ApiError {
   constructor(errors) {
     super(400, "Email existente", errors);
   }
 }
 
-class UserNotFoundError extends APIError {
+class UserNotFoundError extends ApiError {
   constructor(errors) {
     super(401, "Usuário não encontrado", errors);
   }
 }
 
-class InvalidPasswordError extends APIError {
+class InvalidPasswordError extends ApiError {
   constructor(errors) {
     super(401, "Senha inválida", errors);
   }
 }
 
-class TokenError extends APIError {
+class TokenError extends ApiError {
   constructor(errors) {
     super(401, "Token inválido", errors);
   }
