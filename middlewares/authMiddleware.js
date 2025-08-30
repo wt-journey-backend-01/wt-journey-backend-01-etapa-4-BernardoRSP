@@ -13,11 +13,16 @@ function authMiddleware(req, res, next) {
       return next(new ApiError("access_token não fornecido.", 401, { access_token: "access_token nao fornecido" }));
     }
 
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = jwt.verify(token, process.env.JWT_SECRET, (error, user) => {
+      if (error) {
+        return next(new ApiError("access_token inválido ou expirado.", 401, { access_token: error.message }));
+      }
 
-    next();
-  } catch (erro) {
-    return res.status(401).json({ status: 401, message: "Token Inválido" });
+      req.user = user;
+      next();
+    });
+  } catch (error) {
+    return next(new ApiError("Error authenticating user", 401, error.message));
   }
 }
 
