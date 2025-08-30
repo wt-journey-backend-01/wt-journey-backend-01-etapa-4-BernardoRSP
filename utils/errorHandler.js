@@ -1,6 +1,6 @@
 class ApiError extends Error {
-  constructor(errors, status, message) {
-    super(status, message, errors);
+  constructor(message, status, errors) {
+    super(message, status, errors);
 
     this.status = status;
     this.message = message;
@@ -10,61 +10,61 @@ class ApiError extends Error {
 
 class InvalidIdError extends ApiError {
   constructor(errors) {
-    super(404, "ID inválido", errors);
+    super("ID inválido", 404, errors);
   }
 }
 
 class IdNotFoundError extends ApiError {
   constructor(errors) {
-    super(404, "ID inexistente", errors);
+    super("ID inexistente", 404, errors);
   }
 }
 
 class InvalidFormatError extends ApiError {
   constructor(errors) {
-    super(400, "Parâmetros inválidos", errors);
+    super("Parâmetros inválidos", 400, errors);
   }
 }
 
 class InvalidQueryError extends ApiError {
   constructor(errors) {
-    super(400, "Query inválida", errors);
+    super("Query inválida", 400, errors);
   }
 }
 
 class NotFoundRouteError extends ApiError {
   constructor(errors) {
-    super(404, "Endpoint inexistente", errors);
+    super("Endpoint inexistente", 404, errors);
   }
 }
 
 class EmailExistsError extends ApiError {
   constructor(errors) {
-    super(400, "Email existente", errors);
+    super("Email existente", 400, errors);
   }
 }
 
 class UserNotFoundError extends ApiError {
   constructor(errors) {
-    super(401, "Usuário não encontrado", errors);
+    super("Usuário não encontrado", 401, errors);
   }
 }
 
 class InvalidPasswordError extends ApiError {
   constructor(errors) {
-    super(401, "Senha inválida", errors);
+    super("Senha inválida", 401, errors);
   }
 }
 
 class TokenError extends ApiError {
   constructor(errors) {
-    super(401, "Token inválido", errors);
+    super("Token inválido", 401, errors);
   }
 }
 
 function errorHandler(err, req, res, next) {
   const { status, message, errors } = err;
-  res.status(status || 500).send({ status, message, errors });
+  res.status(status || 500).send({ message, status, errors });
 }
 
 module.exports = {
