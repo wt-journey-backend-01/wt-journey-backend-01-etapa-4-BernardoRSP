@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-const { ApiError } = require("../utils/errorHandler.js");
 
 function authMiddleware(req, res, next) {
   try {
@@ -10,13 +9,19 @@ function authMiddleware(req, res, next) {
     const token = cookieToken || headerToken;
 
     if (!token) {
-      return next(new ApiError("access_token não fornecido.", 401, { access_token: "access_token nao fornecido" }));
+      return res.status(401).json({ status: 401, message: "Token Inválido" });
     }
 
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
-    next();
-  } catch (error) {
-    return next(new ApiError("Error authenticating user", 401, error.message));
+    req.user = jwt.verify(token, process.env.JWT_SECRET, (error, user) => {
+      if (error) {
+        return res.status(401).json({ status: 401, message: "Token Não fornecido" });
+      }
+
+      req.user = user;
+      next();
+    });
+  } catch (erro) {
+    return res.status(401).json({ status: 401, message: "Token Inválido" });
   }
 }
 
