@@ -32,7 +32,7 @@ async function registrarUsuario(req, res) {
     const hashed = await bcrypt.hash(senha, 10);
 
     const novoUsuario = { nome, email, senha: hashed };
-    const [usuarioCriado] = await usuariosRepository.registrar(novoUsuario);
+    const usuarioCriado = await usuariosRepository.registrar(novoUsuario);
     return res.status(201).json({ nome: usuarioCriado.nome, email: usuarioCriado.email });
   } catch (error) {
     console.log("Erro referente a: registrarUsuarios\n");

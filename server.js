@@ -13,9 +13,9 @@ const errorHandler = require("./utils/errorHandler.js");
 app.use(express.json());
 
 // Rotas da API
+app.use(authRoutes);
 app.use("/agentes", authMiddleware, agentesRoutes);
 app.use("/casos", authMiddleware, casosRoutes);
-app.use("/auth", authRoutes);
 
 // Configuração do Swagger para documentação
 setupSwagger(app);
