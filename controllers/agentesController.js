@@ -169,7 +169,7 @@ async function atualizarAgenteParcial(req, res) {
       return res.status(404).json({ status: 404, message: "Nenhum campo válido para atualização foi enviado." });
     }
 
-    const agenteEncontrado = await agentesRepository.atualizar(id);
+    const agenteEncontrado = await agentesRepository.encontrar(id);
     if (!agenteEncontrado) return res.status(404).json({ status: 404, message: "Agente não encontrado" });
 
     const agenteAtualizado = await agentesRepository.atualizar(dadosAtualizados, id);
