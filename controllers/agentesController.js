@@ -139,6 +139,9 @@ async function atualizarAgenteParcial(req, res) {
       return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID na URL deve ter um padrão válido" } });
     }
 
+    const agenteEncontrado = await agentesRepository.encontrar(id);
+    if (!agenteEncontrado) return res.status(404).json({ status: 404, message: "Agente não encontrado" });
+
     const erros = {};
     const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
     const campos = Object.keys(req.body);
@@ -158,7 +161,7 @@ async function atualizarAgenteParcial(req, res) {
     }
 
     if (Object.keys(erros).length > 0) {
-      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: erros });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
     const dadosAtualizados = {};
     if (nome !== undefined) dadosAtualizados.nome = nome;
@@ -168,9 +171,6 @@ async function atualizarAgenteParcial(req, res) {
     if (Object.keys(dadosAtualizados).length === 0) {
       return res.status(404).json({ status: 404, message: "Nenhum campo válido para atualização foi enviado." });
     }
-
-    const agenteEncontrado = await agentesRepository.encontrar(id);
-    if (!agenteEncontrado) return res.status(404).json({ status: 404, message: "Agente não encontrado" });
 
     const agenteAtualizado = await agentesRepository.atualizar(dadosAtualizados, id);
 
