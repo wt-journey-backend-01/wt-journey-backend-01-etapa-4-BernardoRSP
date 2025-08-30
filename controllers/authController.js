@@ -115,6 +115,7 @@ async function deletarUsuario(req, res) {
 // Deslogar um Usuário Cadastrado no Sistema
 async function deslogarUsuario(req, res) {
   try {
+    req.user = undefined;
     return res.status(204).end();
   } catch (error) {
     console.log("Erro referente a: deslogarUsuario\n");
