@@ -2,23 +2,15 @@
 
 # 🧪 Relatório de Avaliação – Journey Levty Etapa 1 - BernardoRSP
 
-**Data:** 30/08/2025 20:15
+**Data:** 30/08/2025 20:26
 
-**Nota Final:** `92.73/100`
+**Nota Final:** `98.41/100`
 **Status:** ✅ Aprovado
 
 ---
 ## ✅ Requisitos Obrigatórios
-- Foram encontrados `5` problemas nos requisitos obrigatórios. Veja abaixo os testes que falharam:
-  - ⚠️ **Falhou no teste**: `AGENTS: Recebe status 404 ao tentar buscar um agente inexistente`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
+- Foram encontrados `1` problemas nos requisitos obrigatórios. Veja abaixo os testes que falharam:
   - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 404 ao tentar atualizar agente por completo com método PUT de agente inexistente`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `AGENTS: Recebe status code 404 ao tentar atualizar agente por parcialmente com método PATCH de agente inexistente`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar criar caso com ID de agente inexistente`
-    - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
-  - ⚠️ **Falhou no teste**: `CASES: Recebe status code 404 ao tentar criar caso com ID de agente inválido`
     - **Melhoria sugerida**: Nenhuma sugestão de melhoria disponível.
 
 ## ⭐ Itens de Destaque (recupera até 40 pontos)
