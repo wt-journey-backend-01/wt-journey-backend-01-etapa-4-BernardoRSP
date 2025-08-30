@@ -1,8 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const agentesController = require("../controllers/agentesController.js");
-const authMiddleware = require("../middlewares/authMiddleware.js");
-
 /**
  * @swagger
  * tags:
@@ -20,7 +18,7 @@ const authMiddleware = require("../middlewares/authMiddleware.js");
  *       200:
  *         description: Lista de agentes retornada com sucesso
  */
-router.get("/", authMiddleware, agentesController.listarAgentes);
+router.get("/", agentesController.listarAgentes);
 
 /**
  * @swagger
@@ -41,7 +39,7 @@ router.get("/", authMiddleware, agentesController.listarAgentes);
  *       404:
  *         description: Agente não encontrado
  */
-router.get("/:id", authMiddleware, agentesController.encontrarAgente);
+router.get("/:id", agentesController.encontrarAgente);
 
 /**
  * @swagger
@@ -59,7 +57,7 @@ router.get("/:id", authMiddleware, agentesController.encontrarAgente);
  *       201:
  *         description: Agente criado
  */
-router.post("/", authMiddleware, agentesController.adicionarAgente);
+router.post("/", agentesController.adicionarAgente);
 
 /**
  * @swagger
@@ -89,7 +87,7 @@ router.post("/", authMiddleware, agentesController.adicionarAgente);
  *         description: Agente não encontrado
  */
 
-router.put("/:id", authMiddleware, agentesController.atualizarAgente);
+router.put("/:id", agentesController.atualizarAgente);
 
 /**
  * @swagger
@@ -117,7 +115,7 @@ router.put("/:id", authMiddleware, agentesController.atualizarAgente);
  *         description: Agente não encontrado
  */
 
-router.patch("/:id", authMiddleware, agentesController.atualizarAgenteParcial);
+router.patch("/:id", agentesController.atualizarAgenteParcial);
 
 /**
  * @swagger
@@ -137,6 +135,6 @@ router.patch("/:id", authMiddleware, agentesController.atualizarAgenteParcial);
  *       404:
  *         description: Agente não encontrado
  */
-router.delete("/:id", authMiddleware, agentesController.deletarAgente);
+router.delete("/:id", agentesController.deletarAgente);
 
 module.exports = router;

@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const casosController = require("../controllers/casosController.js");
-const authMiddleware = require("../middlewares/authMiddleware.js");
 
 /**
  * @swagger
@@ -20,7 +19,7 @@ const authMiddleware = require("../middlewares/authMiddleware.js");
  *       200:
  *         description: Lista de casos retornada com sucesso
  */
-router.get("/", authMiddleware, casosController.listarCasos);
+router.get("/", casosController.listarCasos);
 /**
  * @swagger
  * /casos/{id}:
@@ -40,7 +39,7 @@ router.get("/", authMiddleware, casosController.listarCasos);
  *       404:
  *         description: Caso não encontrado
  */
-router.get("/:id", authMiddleware, casosController.encontrarCaso);
+router.get("/:id", casosController.encontrarCaso);
 /**
  * @swagger
  * /casos:
@@ -57,7 +56,7 @@ router.get("/:id", authMiddleware, casosController.encontrarCaso);
  *       201:
  *         description: Caso criado
  */
-router.post("/", authMiddleware, casosController.adicionarCaso);
+router.post("/", casosController.adicionarCaso);
 
 /**
  * @swagger
@@ -87,7 +86,7 @@ router.post("/", authMiddleware, casosController.adicionarCaso);
  *       404:
  *         description: Caso não encontrado
  */
-router.put("/:id", authMiddleware, casosController.atualizarCaso);
+router.put("/:id", casosController.atualizarCaso);
 
 /**
  * @swagger
@@ -113,7 +112,7 @@ router.put("/:id", authMiddleware, casosController.atualizarCaso);
  *       404:
  *         description: Caso não encontrado
  */
-router.patch("/:id", authMiddleware, casosController.atualizarCasoParcial);
+router.patch("/:id", casosController.atualizarCasoParcial);
 
 /**
  * @swagger
@@ -134,6 +133,6 @@ router.patch("/:id", authMiddleware, casosController.atualizarCasoParcial);
  *         description: Caso não encontrado
  */
 
-router.delete("/:id", authMiddleware, casosController.deletarCaso);
+router.delete("/:id", casosController.deletarCaso);
 
 module.exports = router;

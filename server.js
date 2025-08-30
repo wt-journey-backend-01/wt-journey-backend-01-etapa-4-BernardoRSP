@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-//const authMiddleware = require("./middlewares/authMiddleware.js");
+const authMiddleware = require("./middlewares/authMiddleware.js");
 const port = 3000;
 
 const agentesRoutes = require("./routes/agentesRoutes.js");
@@ -14,8 +14,8 @@ app.use(express.json());
 
 // Rotas da API
 app.use(authRoutes);
-app.use("/agentes", agentesRoutes);
-app.use("/casos", casosRoutes);
+app.use("/agentes", authMiddleware, agentesRoutes);
+app.use("/casos", authMiddleware, casosRoutes);
 
 // Configuração do Swagger para documentação
 setupSwagger(app);
