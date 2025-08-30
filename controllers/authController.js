@@ -26,7 +26,7 @@ async function registrarUsuario(req, res) {
     }
 
     if (await usuariosRepository.encontrar(email)) {
-      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: { email: "O usuário já está cadastrado" } });
+      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { email: "O usuário já está cadastrado" } });
     }
 
     const salt = await bcrypt.genSalt(10);
