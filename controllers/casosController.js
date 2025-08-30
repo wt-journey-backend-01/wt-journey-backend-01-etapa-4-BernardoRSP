@@ -45,10 +45,10 @@ async function adicionarCaso(req, res) {
     if (campos.some((campo) => !camposPermitidos.includes(campo))) {
       erros.geral = "O caso deve conter apenas os campos 'titulo', 'descricao', 'status' e 'agente_id'";
     }
-    if (!titulo)  erros.titulo = "O campo 'titulo' é obrigatório";
-    if (!descricao)  erros.descricao = "O campo 'descricao' é obrigatório";
-    if (!status)  erros.status = "O campo 'status' é obrigatório";
-    if (!agente_id)  erros.agente_id = "O campo 'agente_id' é obrigatório";
+    if (!titulo) erros.titulo = "O campo 'titulo' é obrigatório";
+    if (!descricao) erros.descricao = "O campo 'descricao' é obrigatório";
+    if (!status) erros.status = "O campo 'status' é obrigatório";
+    if (!agente_id) erros.agente_id = "O campo 'agente_id' é obrigatório";
 
     if (status && status !== "aberto" && status !== "solucionado") {
       erros.status = "O Status deve ser 'aberto' ou 'solucionado'";
@@ -57,12 +57,12 @@ async function adicionarCaso(req, res) {
       erros.agente_id = "O agente_id deve ter um padrão válido";
     }
     if (Object.keys(erros).length > 0) {
-      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
+      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: erros });
     }
 
     const agenteDoCaso = await agentesRepository.encontrar(agente_id);
     if (!agenteDoCaso || Object.keys(agenteDoCaso).length === 0) {
-      return res.status(404).json({ status: 404, message: "O agente com o ID fornecido não foi encontrado" });
+      return res.status(400).json({ status: 400, message: "O agente com o ID fornecido não foi encontrado" });
     }
 
     const novoCaso = { titulo, descricao, status, agente_id };
@@ -81,7 +81,7 @@ async function atualizarCaso(req, res) {
     const { id } = req.params;
     const { titulo, descricao, status, agente_id, id: bodyId } = req.body;
     if (!intPos.test(id)) {
-      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: { id: "O ID na URL deve ser um padrão válido" } });
+      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID na URL deve ser um padrão válido" } });
     }
 
     const erros = {};
@@ -95,10 +95,10 @@ async function atualizarCaso(req, res) {
     if (campos.some((campo) => !camposPermitidos.includes(campo))) {
       erros.geral = "O caso deve conter apenas os campos 'titulo', 'descricao', 'status' e 'agente_id'";
     }
-    if (!titulo)  erros.titulo = "O campo 'titulo' é obrigatório";
-    if (!descricao)  erros.descricao = "O campo 'descricao' é obrigatório";
-    if (!status)  erros.status = "O campo 'status' é obrigatório";
-    if (!agente_id)  erros.agente_id = "O campo 'agente_id' é obrigatório";
+    if (!titulo) erros.titulo = "O campo 'titulo' é obrigatório";
+    if (!descricao) erros.descricao = "O campo 'descricao' é obrigatório";
+    if (!status) erros.status = "O campo 'status' é obrigatório";
+    if (!agente_id) erros.agente_id = "O campo 'agente_id' é obrigatório";
 
     if (status && status !== "aberto" && status !== "solucionado") {
       erros.status = "O Status deve ser 'aberto' ou 'solucionado'";
@@ -131,16 +131,16 @@ async function atualizarCasoParcial(req, res) {
     const { id } = req.params;
     const { titulo, descricao, status, agente_id, id: bodyId } = req.body;
     if (!intPos.test(id)) {
-      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: { id: "O ID na URL deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID na URL deve ter um padrão válido" } });
     }
 
     const erros = {};
-    //const camposPermitidos = ["titulo", "descricao", "status", "agente_id"];
-    //const campos = Object.keys(req.body);
+    const camposPermitidos = ["titulo", "descricao", "status", "agente_id"];
+    const campos = Object.keys(req.body);
 
-    /*if (campos.some((campo) => !camposPermitidos.includes(campo))) {
+    if (campos.some((campo) => !camposPermitidos.includes(campo))) {
       erros.geral = "Campos inválidos enviados. Permitidos: 'titulo', 'descricao', 'status', 'agente_id'";
-    }*/
+    }
     if (bodyId) {
       erros.id = "Não é permitido alterar o ID de um caso.";
     }
