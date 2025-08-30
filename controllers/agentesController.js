@@ -1,6 +1,6 @@
 const agentesRepository = require("../repositories/agentesRepository.js");
 const intPos = /^\d+$/; // Regex para aceitar número inteiro positivo
-const formatoData = /^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/; // Regex para aceitar data no formato YYYY-MM-DD
+const formatoData = /^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/; // Regex para aceitar data no formato: YYYY-MM-DD
 
 // Mostrar Todos os Agentes
 async function listarAgentes(req, res) {
