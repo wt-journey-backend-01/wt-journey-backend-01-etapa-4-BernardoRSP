@@ -22,13 +22,10 @@ async function encontrarAgente(req, res) {
     if (!intPos.test(id)) {
       return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID deve ter um padrão válido" } });
     }
-
     const agente = await agentesRepository.encontrar(id);
-
     if (!agente) {
       return res.status(404).json({ status: 404, message: "Agente não encontrado" });
     }
-
     res.status(200).json(agente);
   } catch (error) {
     console.log("Erro referente a: encontrarAgente\n");

@@ -11,6 +11,9 @@ async function encontrar(id) {
   const encontrado = await db("agentes")
     .where({ id: Number(id) })
     .first();
+
+  if (!encontrado) return null;
+
   return { ...encontrado, dataDeIncorporacao: new Date(encontrado.dataDeIncorporacao).toISOString().split("T")[0] };
 }
 
