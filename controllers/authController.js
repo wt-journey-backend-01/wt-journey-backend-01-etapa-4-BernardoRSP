@@ -83,7 +83,7 @@ async function logarUsuario(req, res) {
     }
 
     // Gera token
-    const token = jwt.sign({ id: usuario.id, email: usuario.email }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign({ id: usuario.id, email: usuario.email }, process.env.JWT_SECRET || "secret", { expiresIn: "1d" });
 
     res.cookie("access_token", token, { httpOnly: true, secure: false, sameSite: "strict" });
 
