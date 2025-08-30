@@ -57,7 +57,7 @@ async function adicionarCaso(req, res) {
       erros.agente_id = "O agente_id deve ter um padrão válido";
     }
     if (Object.keys(erros).length > 0) {
-      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: erros });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
 
     const agenteDoCaso = await agentesRepository.encontrar(agente_id);
