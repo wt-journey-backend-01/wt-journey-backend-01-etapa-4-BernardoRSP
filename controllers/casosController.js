@@ -19,7 +19,7 @@ async function encontrarCaso(req, res) {
   try {
     const { id } = req.params;
     if (!intPos.test(id)) {
-      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: { id: "O ID deve ter um padrão válido" } });
+      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID deve ter um padrão válido" } });
     }
     const caso = await casosRepository.encontrar(id);
     if (!caso) {
@@ -62,7 +62,7 @@ async function adicionarCaso(req, res) {
 
     const agenteDoCaso = await agentesRepository.encontrar(agente_id);
     if (!agenteDoCaso || Object.keys(agenteDoCaso).length === 0) {
-      return res.status(400).json({ status: 400, message: "O agente com o ID fornecido não foi encontrado" });
+      return res.status(404).json({ status: 404, message: "O agente com o ID fornecido não foi encontrado" });
     }
 
     const novoCaso = { titulo, descricao, status, agente_id };
