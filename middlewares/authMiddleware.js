@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const ApiError = require("../utils/errorHandler.js");
+const { ApiError } = require("../utils/errorHandler.js");
 
 function authMiddleware(req, res, next) {
   try {
@@ -16,7 +16,7 @@ function authMiddleware(req, res, next) {
     req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
   } catch (error) {
-    return res.status(401).json({ status: 401, message: "token inválido" });
+    return next(new ApiError("Error authenticating user", 401, error.message));
   }
 }
 
