@@ -64,7 +64,7 @@ async function adicionarAgente(req, res) {
     }
 
     if (Object.keys(erros).length > 0) {
-      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: erros });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
 
     const novoAgente = { nome, dataDeIncorporacao, cargo };
@@ -134,6 +134,10 @@ async function atualizarAgenteParcial(req, res) {
   try {
     const { id } = req.params;
     const { nome, dataDeIncorporacao, cargo, id: bodyId } = req.body;
+
+    if (!intPos.test(id)) {
+      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: { id: "O ID na URL deve ter um padrão válido" } });
+    }
 
     const agenteEncontrado = await agentesRepository.encontrar(id);
     if (!agenteEncontrado) return res.status(404).json({ status: 404, message: "Agente não encontrado" });
