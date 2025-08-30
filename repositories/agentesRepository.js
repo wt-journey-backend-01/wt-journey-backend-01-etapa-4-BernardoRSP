@@ -29,6 +29,8 @@ async function atualizar(dadosAtualizados, id) {
     .where({ id: Number(id) })
     .update(dadosAtualizados)
     .returning("*");
+
+  if (!atualizado) return null;
   return { ...atualizado, dataDeIncorporacao: new Date(atualizado.dataDeIncorporacao).toISOString().split("T")[0] };
 }
 
