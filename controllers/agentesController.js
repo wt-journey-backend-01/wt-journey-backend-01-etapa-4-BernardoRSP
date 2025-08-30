@@ -1,6 +1,6 @@
 const agentesRepository = require("../repositories/agentesRepository.js");
 const intPos = /^\d+$/; // Regex para aceitar número inteiro positivo
-const FormatoData = /^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/; // Regex para aceitar data no formato YYYY-MM-DD
+const formatoData = /^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/; // Regex para aceitar data no formato YYYY-MM-DD
 
 // Mostrar Todos os Agentes
 async function listarAgentes(req, res) {
@@ -53,11 +53,11 @@ async function adicionarAgente(req, res) {
       erros.geral = "O agente deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
     }
 
-    if (!nome)  erros.nome = "O campo 'nome' é obrigatório";
-    if (!dataDeIncorporacao)  erros.dataDeIncorporacao = "O campo 'dataDeIncorporacao' é obrigatório";
-    if (!cargo)  erros.cargo = "O campo 'cargo' é obrigatório";
+    if (!nome) erros.nome = "O campo 'nome' é obrigatório";
+    if (!dataDeIncorporacao) erros.dataDeIncorporacao = "O campo 'dataDeIncorporacao' é obrigatório";
+    if (!cargo) erros.cargo = "O campo 'cargo' é obrigatório";
 
-    if (dataDeIncorporacao && !dataDeIncorporacao.match(FormatoData)) {
+    if (dataDeIncorporacao && !dataDeIncorporacao.match(formatoData)) {
       erros.dataDeIncorporacao = "A data de incorporação deve ser uma data válida no formato AAAA-MM-DD";
     } else if (new Date(dataDeIncorporacao) > new Date()) {
       erros.dataDeIncorporacao = "A data de incorporação não pode ser uma data futura";
@@ -71,8 +71,7 @@ async function adicionarAgente(req, res) {
 
     const agenteCriado = await agentesRepository.adicionar(novoAgente);
     res.status(201).json(agenteCriado);
-
-  }catch (error) {
+  } catch (error) {
     console.log("Erro referente a: adicionarAgente\n");
     console.log(error);
     res.status(500).json({ status: 500, message: "Erro interno do servidor" });
@@ -101,12 +100,11 @@ async function atualizarAgente(req, res) {
       erros.geral = "O agente deve conter apenas os campos 'nome', 'dataDeIncorporacao' e 'cargo'";
     }
 
-    if (!nome)  erros.nome = "O campo 'nome' é obrigatório";
-    if (!dataDeIncorporacao)  erros.dataDeIncorporacao = "O campo 'dataDeIncorporacao' é obrigatório";
-    if (!cargo)  erros.cargo = "O campo 'cargo' é obrigatório";
+    if (!nome) erros.nome = "O campo 'nome' é obrigatório";
+    if (!dataDeIncorporacao) erros.dataDeIncorporacao = "O campo 'dataDeIncorporacao' é obrigatório";
+    if (!cargo) erros.cargo = "O campo 'cargo' é obrigatório";
 
-
-    if (dataDeIncorporacao && !dataDeIncorporacao.match(FormatoData)) {
+    if (dataDeIncorporacao && !dataDeIncorporacao.match(formatoData)) {
       erros.dataDeIncorporacao = "A data de incorporação deve ser uma data válida no formato AAAA-MM-DD";
     } else if (new Date(dataDeIncorporacao) > new Date()) {
       erros.dataDeIncorporacao = "A data de incorporação não pode ser uma data futura";
@@ -153,7 +151,7 @@ async function atualizarAgenteParcial(req, res) {
       erros.id = "Não é permitido alterar o ID de um agente.";
     }
 
-    if (dataDeIncorporacao && !dataDeIncorporacao.match(FormatoData)) {
+    if (dataDeIncorporacao && !dataDeIncorporacao.match(formatoData)) {
       erros.dataDeIncorporacao = "A data de incorporação deve ser uma data válida no formato AAAA-MM-DD";
     } else if (new Date(dataDeIncorporacao) > new Date()) {
       erros.dataDeIncorporacao = "A data de incorporação não pode ser uma data futura";

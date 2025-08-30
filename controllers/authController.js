@@ -33,7 +33,7 @@ async function registrarUsuario(req, res) {
 
     const novoUsuario = { nome, email, senha: hashed };
     const [usuarioCriado] = await usuariosRepository.registrar(novoUsuario);
-    return res.status(201).json(usuarioCriado);
+    return res.status(201).json({ nome: usuarioCriado.nome, email: usuarioCriado.email });
   } catch (error) {
     console.log("Erro referente a: registrarUsuarios\n");
     console.log(error);
@@ -45,44 +45,44 @@ async function registrarUsuario(req, res) {
 async function logarUsuario(req, res) {
   try {
     const { email, senha } = req.body;
-    
+
     const erros = {};
     const camposPermitidos = ["email", "senha"];
     const campos = Object.keys(req.body);
 
-    if(campos.some((campo) => !camposPermitidos.includes(campo))){
+    if (campos.some((campo) => !camposPermitidos.includes(campo))) {
       erros.geral = "Campos não permitidos enviados";
     }
-    if(!email || email.trim() === ""){
+    if (!email || email.trim() === "") {
       erros.email = "E-mail é obrigatório";
     }
-    if(!senha || senha.trim() === ""){
+    if (!senha || senha.trim() === "") {
       erros.senha = "Senha é obrigatória";
     }
-    if ((Object.keys(erros).length > 0)) {
-      return res.status(400).json({status: 400, message: "Dados não enviados corretamente", error: erros});
+    if (Object.keys(erros).length > 0) {
+      return res.status(400).json({ status: 400, message: "Dados não enviados corretamente", error: erros });
     }
 
     // Busca usuário
     const usuario = await usuariosRepository.encontrar(email);
 
     if (!usuario) {
-      return res.status(401).json({ 
-        status: 401, 
-        message: "Credenciais inválidas" 
+      return res.status(401).json({
+        status: 401,
+        message: "Credenciais inválidas",
       });
-    }    
+    }
     // Valida senha
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
     if (!senhaValida) {
-      return res.status(401).json({ 
-        status: 401, 
-        message: "Credenciais inválidas" 
+      return res.status(401).json({
+        status: 401,
+        message: "Credenciais inválidas",
       });
     }
 
     // Gera token
-    const token = jwt.sign({ id: usuario.id, email: usuario.email },process.env.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign({ id: usuario.id, email: usuario.email }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
     return res.status(200).json({ access_token: token });
   } catch (error) {
@@ -90,7 +90,6 @@ async function logarUsuario(req, res) {
     res.status(500).json({ status: 500, message: "Erro interno do servidor" });
   }
 }
-
 
 // Deletar a Conta de um Usuário
 async function deletarUsuario(req, res) {

@@ -9,8 +9,6 @@ async function encontrar(email) {
 // Registrar um Usuário no Sistema
 async function registrar(usuario) {
   const registrado = await db("usuarios").insert(usuario).returning("*");
-  console.log("registradoRepository");
-  console.log(registrado);
   return registrado;
 }
 
