@@ -25,11 +25,6 @@ async function encontrarAgente(req, res) {
 
     const agente = await agentesRepository.encontrar(id);
 
-    // RETIRAR:
-    if (agente) {
-      agente.dataDeIncorporacao = new Date(agente.dataDeIncorporacao).toISOString().split("T")[0];
-    }
-
     if (!agente) {
       return res.status(404).json({ status: 404, message: "Agente não encontrado" });
     }
