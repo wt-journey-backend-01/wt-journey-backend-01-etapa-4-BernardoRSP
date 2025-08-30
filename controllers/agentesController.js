@@ -30,7 +30,7 @@ async function encontrarAgente(req, res) {
     }
 
     if (!agente) {
-      return res.status(400).json({ status: 400, message: "Agente não encontrado" });
+      return res.status(404).json({ status: 404, message: "Agente não encontrado" });
     }
 
     res.status(200).json(agente);
@@ -111,7 +111,7 @@ async function atualizarAgente(req, res) {
     }
 
     if (Object.keys(erros).length > 0) {
-      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: erros });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
 
     const agenteAtualizado = await agentesRepository.atualizar({ nome, dataDeIncorporacao, cargo }, id);
@@ -158,7 +158,7 @@ async function atualizarAgenteParcial(req, res) {
     }
 
     if (Object.keys(erros).length > 0) {
-      return res.status(404).json({ status: 404, message: "Parâmetros inválidos", error: erros });
+      return res.status(400).json({ status: 400, message: "Parâmetros inválidos", error: erros });
     }
     const dadosAtualizados = {};
     if (nome !== undefined) dadosAtualizados.nome = nome;
