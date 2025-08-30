@@ -14,6 +14,7 @@ function authMiddleware(req, res, next) {
     }
 
     req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
   } catch (error) {
     return next(new ApiError("Error authenticating user", 401, error.message));
   }
