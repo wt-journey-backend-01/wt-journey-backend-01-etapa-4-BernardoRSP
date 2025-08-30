@@ -1,6 +1,6 @@
 <sup>Esse é um feedback gerado por IA, ele pode conter erros.</sup>
 
-Você tem 2 créditos restantes para usar o sistema de feedback AI.
+Você tem 1 créditos restantes para usar o sistema de feedback AI.
 
 # Feedback para BernardoRSP:
 
@@ -8,32 +8,42 @@ Nota final: **52.0/100**
 
 Olá, BernardoRSP! 👋🚀
 
-Antes de mais nada, parabéns pelo esforço até aqui! Você conseguiu implementar a parte de usuários, com registro, login, logout e exclusão funcionando direitinho, além de proteger as rotas com JWT. Isso é um baita avanço, e mostra que você entendeu bem conceitos importantes de autenticação e segurança! 🎉👏
+Primeiramente, parabéns pelo esforço e dedicação até aqui! 🎉 Você conseguiu implementar com sucesso a parte crítica de autenticação e autorização, que é um dos pilares para uma API segura. Os testes de usuários (registro, login, logout e deleção) passaram com sucesso, o que mostra que você entendeu muito bem o funcionamento do bcrypt, JWT e as validações de senha e email. Isso é uma conquista e tanto! 👏👏
 
-Também percebi que você estruturou o projeto de forma organizada, seguindo a arquitetura MVC com controllers, repositories, rotas e middlewares, o que é ótimo para manter o código limpo e escalável. Legal ver o uso do Knex para migrations e seeds, e a inclusão do Swagger para documentação — isso mostra cuidado e profissionalismo.
-
----
-
-## 🚩 Agora vamos analisar os testes que falharam para destravar seu código e melhorar sua nota!
-
-### Testes que falharam (muitos do grupo AGENTS e CASES):
-
-- Criação, listagem, busca, atualização (PUT e PATCH) e exclusão de agentes e casos
-- Validações de payload e IDs inválidos
-- Tratamento correto de status 400 e 404
-- Proteção das rotas com JWT (alguns testes confirmam que sem token dá 401, o que você acertou!)
+Além disso, você estruturou seu projeto seguindo a arquitetura MVC (com controllers, repositories, middlewares e rotas bem organizados), e isso facilita muito a manutenção e escalabilidade da aplicação. O uso do middleware de autenticação para proteger as rotas de agentes e casos também está correto, o que é ótimo para garantir segurança.
 
 ---
 
-### Causa raiz dos principais problemas encontrados
+## 🚩 Agora vamos analisar juntos os pontos que precisam de atenção para destravar sua nota e fazer seu projeto brilhar ainda mais! ✨
 
-#### 1. Erro ao criar, listar, buscar, atualizar e deletar agentes e casos
+### 1. Testes que falharam relacionados a **Agentes** e **Casos**
 
-**Sintoma:**  
-Os testes que envolvem agentes e casos estão falhando, mesmo com o middleware de autenticação funcionando corretamente.
+Você teve falhas em quase todos os testes obrigatórios que envolvem as operações CRUD de agentes e casos. Vamos entender o que pode estar acontecendo.
 
-**Análise:**  
-Olhando no seu `repositories/agentesRepository.js`, notei que na função `encontrar` você fez assim:
+---
+
+### Análise detalhada dos testes que falharam
+
+---
+
+### 1.1. Falhas em criação, listagem, busca, atualização e deleção de agentes
+
+- Exemplos de testes que falharam:
+
+```
+'AGENTS: Cria agentes corretamente com status code 201 e os dados inalterados do agente mais seu ID',
+'AGENTS: Lista todos os agente corretamente com status code 200 e todos os dados de cada agente listados corretamente',
+'AGENTS: Busca agente por ID corretamente com status code 200 e todos os dados do agente listados dentro de um objeto JSON',
+'AGENTS: Atualiza dados do agente com por completo (com PUT) corretamente com status code 200 e dados atualizados do agente listados num objeto JSON',
+'AGENTS: Atualiza dados do agente com por completo (com PATCH) corretamente com status code 200 e dados atualizados do agente listados num objeto JSON',
+'AGENTS: Deleta dados de agente corretamente com status code 204 e corpo vazio',
+```
+
+---
+
+### Causa raiz provável
+
+Olhando para o seu **agentesRepository.js**, percebi alguns pontos que podem estar causando problema:
 
 ```js
 async function encontrar(id) {
@@ -44,11 +54,9 @@ async function encontrar(id) {
 }
 ```
 
-Aqui tem um problema: você está usando `.first()` e ao mesmo tempo desestruturando o resultado com `[encontrado]`, mas `.first()` já retorna um objeto, não um array.
+Aqui, você usa `.first()` e também desestrutura o resultado com `[encontrado]`. Isso é redundante e pode gerar `undefined` em alguns casos, causando erros ou retornos inesperados.
 
-Isso vai fazer `encontrado` ser `undefined`, e na linha seguinte você tenta acessar `encontrado.dataDeIncorporacao`, causando erro ou retornando valor inesperado.
-
-O correto seria:
+O correto é usar **ou um `.first()` que já retorna o objeto, ou `.where(...).limit(1)` com desestruturação**. Exemplo correto:
 
 ```js
 async function encontrar(id) {
@@ -60,9 +68,29 @@ async function encontrar(id) {
 }
 ```
 
-Esse erro provavelmente está causando falha na busca de agentes, e por consequência, em várias operações que dependem disso.
+Se `encontrado` for `undefined` (quando não achar o agente), seu código atual quebra ao tentar fazer `new Date(encontrado.dataDeIncorporacao)`.
 
-O mesmo padrão aparece no `casosRepository.js`:
+Esse mesmo padrão aparece em outras funções, como a de atualizar:
+
+```js
+async function atualizar(dadosAtualizados, id) {
+  const [atualizado] = await db("agentes")
+    .where({ id: Number(id) })
+    .update(dadosAtualizados)
+    .returning("*");
+  return {...atualizado, dataDeIncorporacao: new Date(atualizado.dataDeIncorporacao).toISOString().split("T")[0]};
+}
+```
+
+Aqui, se o agente não existir, `atualizado` será `undefined`, e seu código vai quebrar ao tentar acessar `atualizado.dataDeIncorporacao`.
+
+**Solução:** Antes de manipular `atualizado.dataDeIncorporacao`, verifique se `atualizado` existe. Se não, retorne `null` para o controller poder responder 404 corretamente.
+
+---
+
+### 1.2. Mesma situação para os casos
+
+No arquivo **casosRepository.js**, você tem:
 
 ```js
 async function encontrar(id) {
@@ -73,7 +101,7 @@ async function encontrar(id) {
 }
 ```
 
-Aqui está correto, sem desestruturação, mas em outras funções de atualização você usa:
+Aqui está correto, mas nas funções de atualizar e adicionar, você não está tratando o caso de não encontrar o registro:
 
 ```js
 async function atualizar(dadosAtualizados, id) {
@@ -85,25 +113,22 @@ async function atualizar(dadosAtualizados, id) {
 }
 ```
 
-`returning("*")` retorna um array, então no controller você precisa desestruturar ou pegar o primeiro elemento para retornar o objeto atualizado.
-
-Por exemplo, no controller você faz:
+`atualizado` será um array vazio se não encontrar o caso. Então, quando você faz no controller:
 
 ```js
 const [casoAtualizado] = await casosRepository.atualizar(...);
-if (!casoAtualizado) { ... }
-res.status(200).json(casoAtualizado);
+if (!casoAtualizado) {
+  return res.status(404).json({ status: 404, message: "Caso não encontrado" });
+}
 ```
 
-Isso está correto, mas no `agentesRepository.js` você está retornando o objeto já desestruturado na função `atualizar`, o que pode causar inconsistência.
-
-Sugiro padronizar: sempre retorne o objeto atualizado (primeiro elemento do array retornado pelo `returning("*")`), e trate no controller.
+Está correto, mas pode ser que o seu repositório retorne um array vazio, e o controller não trate isso corretamente em todos os lugares.
 
 ---
 
-#### 2. Validação de payload e campos extras
+### 1.3. Validação dos campos extras e obrigatórios
 
-Você está validando muito bem os campos nos controllers, mas em alguns métodos de atualização parcial (`PATCH`), você comentou a validação dos campos permitidos:
+Nos controllers de agentes e casos você valida campos extras e obrigatórios, mas em alguns lugares você comenta a verificação de campos extras (exemplo em atualizar parcialmente):
 
 ```js
 //const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
@@ -114,159 +139,125 @@ Você está validando muito bem os campos nos controllers, mas em alguns método
 }*/
 ```
 
-Isso pode permitir campos extras que os testes não aceitam, causando falha por "payload em formato incorreto".
-
-Recomendo descomentar e usar essa validação para garantir que só campos permitidos sejam enviados.
+Isso pode estar permitindo campos inválidos e quebrando os testes que esperam erro 400 para payloads incorretos.
 
 ---
 
-#### 3. Tratamento de erros e resposta para IDs inválidos e não encontrados
+### 1.4. Formato do retorno nos endpoints
 
-Você está validando IDs com regex (`intPos`) e retornando 400 para IDs inválidos, o que é ótimo.
+Alguns testes esperam que a resposta contenha exatamente os dados do agente ou caso, sem transformações que possam alterar tipos ou formatos.
 
-Porém, no `agentesRepository.encontrar` e `casosRepository.encontrar`, se o registro não existe, você retorna `undefined` ou `null`?
-
-Exemplo no `agentesRepository`:
+Por exemplo, no seu **listarAgentes** você faz o mapeamento para formatar a data:
 
 ```js
-const [encontrado] = await db("agentes")
-  .where({ id: Number(id) })
-  .first();
-return {...encontrado, ...};
+return listado.map((agente) => ({...agente, dataDeIncorporacao: new Date(agente.dataDeIncorporacao).toISOString().split("T")[0]}));
 ```
 
-Se `encontrado` for `undefined`, você estará retornando um objeto com propriedades de `undefined`, gerando erro.
-
-Melhor verificar:
-
-```js
-if (!encontrado) return null;
-```
-
-E no controller, verificar se o retorno é `null` para responder 404.
-
-Isso ajuda a evitar erros internos e garante que o teste de "agente não encontrado" passe.
+Isso é bom, mas certifique-se que o formato está exatamente como esperado nos testes (ex: "YYYY-MM-DD"). Se houver qualquer diferença, pode causar falha.
 
 ---
 
-#### 4. Resposta correta no método DELETE
+### 1.5. Middleware de autenticação funcionando corretamente
 
-Nos controllers de exclusão, você verifica o retorno da deleção:
+Você aplicou o middleware `authMiddleware` nas rotas de agentes e casos, o que é perfeito.
 
-```js
-const sucesso = await agentesRepository.deletar(id);
-if (sucesso === 0) {
-  return res.status(404).json({ status: 404, message: "Agente não encontrado" });
-}
-res.status(204).end();
-```
-
-Isso está correto. Só garanta que o método `deletar` do repository retorne o número de linhas deletadas (que você já faz).
+Os testes confirmam que sem token válido o acesso é negado com 401, então essa parte está correta e bem feita! 👏
 
 ---
 
-#### 5. Middleware de autenticação e rotas protegidas
+### 2. Estrutura de Diretórios
 
-Você aplicou o middleware `authMiddleware` nas rotas `/agentes` e `/casos`, o que está correto e os testes confirmam que sem token o acesso é negado.
+Você seguiu a estrutura solicitada, incluindo:
+
+- `routes/authRoutes.js`
+- `controllers/authController.js`
+- `repositories/usuariosRepository.js`
+- `middlewares/authMiddleware.js`
+- `utils/errorHandler.js`
+
+Parabéns por manter essa organização, isso facilita muito o entendimento e manutenção do código!
 
 ---
 
-### Análise dos testes bônus que falharam
+### 3. Sobre os testes bônus que não passaram
 
-Você não implementou os filtros e endpoints extras para buscar casos por status, agente, keywords, e o endpoint `/usuarios/me` para retornar dados do usuário autenticado.
-
-Isso é esperado, pois são bônus. Se quiser melhorar sua nota, pode focar nesses pontos depois.
+Você não implementou ainda os endpoints de filtragem avançada e o endpoint `/usuarios/me`, que são opcionais, mas que podem melhorar muito sua nota e experiência prática.
 
 ---
 
-## Sugestões de melhorias e correções no código
+## 🎯 Recomendações e dicas para melhorar seu código
 
-### Exemplo de correção no `agentesRepository.js` para a função `encontrar`:
+### 1. Corrigir a manipulação dos resultados das queries no repositório
+
+Exemplo para agentesRepository.js:
 
 ```js
 async function encontrar(id) {
   const encontrado = await db("agentes")
     .where({ id: Number(id) })
     .first();
-
   if (!encontrado) return null;
-
-  return {
-    ...encontrado,
-    dataDeIncorporacao: new Date(encontrado.dataDeIncorporacao).toISOString().split("T")[0]
-  };
+  return {...encontrado, dataDeIncorporacao: new Date(encontrado.dataDeIncorporacao).toISOString().split("T")[0]};
 }
-```
 
-### Exemplo de validação de campos extras no PATCH (controller agentes):
-
-```js
-const camposPermitidos = ["nome", "dataDeIncorporacao", "cargo"];
-const campos = Object.keys(req.body);
-
-if (campos.some((campo) => !camposPermitidos.includes(campo))) {
-  erros.geral = "Campos inválidos enviados. Permitidos: 'nome', 'dataDeIncorporacao' e 'cargo'";
-}
-```
-
-### Padronização no retorno do `atualizar` no repository
-
-No `agentesRepository.js`:
-
-```js
 async function atualizar(dadosAtualizados, id) {
-  const [atualizado] = await db("agentes")
+  const atualizado = await db("agentes")
     .where({ id: Number(id) })
     .update(dadosAtualizados)
     .returning("*");
-
-  if (!atualizado) return null;
-
-  return {
-    ...atualizado,
-    dataDeIncorporacao: new Date(atualizado.dataDeIncorporacao).toISOString().split("T")[0]
-  };
+  if (!atualizado || atualizado.length === 0) return null;
+  const agente = atualizado[0];
+  return {...agente, dataDeIncorporacao: new Date(agente.dataDeIncorporacao).toISOString().split("T")[0]};
 }
 ```
 
-No controller, trate o retorno `null` para 404.
+Assim você evita erros ao tentar acessar propriedades de `undefined`.
+
+### 2. Reativar e reforçar a validação de campos extras nos controllers
+
+Não permita que o usuário envie campos que não são esperados. Isso ajuda a manter a API robusta e evita dados inválidos.
+
+### 3. Sempre verificar se o registro existe antes de manipular dados
+
+No controller, após chamar o repositório, cheque se o resultado existe, caso contrário retorne 404.
+
+### 4. Testar os formatos de data e JSON exatamente como esperado
+
+Garanta que as datas estejam no formato `"YYYY-MM-DD"` e que os objetos retornados estejam conforme o esperado.
 
 ---
 
-## Recomendações de estudo para você!
+## 📚 Recursos para você se aprofundar e corrigir esses pontos
 
-- Para entender melhor como lidar com o Knex e o retorno das queries, veja este vídeo que explica o Query Builder do Knex em detalhes:  
-https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s
+- Para melhorar seu entendimento sobre **Knex e manipulação de queries**, recomendo muito este vídeo:  
+https://www.youtube.com/watch?v=GLwHSs7t3Ns&t=4s  
+Ele explica bem como usar o query builder e tratar resultados.
 
-- Para aprimorar seu entendimento sobre autenticação JWT e uso correto no middleware, recomendo este vídeo, feito pelos meus criadores, que fala muito bem sobre os conceitos básicos e fundamentais:  
-https://www.youtube.com/watch?v=Q4LQOfYwujk
-
-- Para garantir que suas migrations e seeds estejam configuradas corretamente, e evitar problemas no banco, veja este tutorial sobre configuração de banco com Docker e Knex:  
-https://www.youtube.com/watch?v=uEABDBQV-Ek&t=1s
-
-- Para organizar melhor seu projeto e entender arquitetura MVC, veja este vídeo que ajuda a estruturar projetos Node.js:  
+- Sobre **estruturação e boas práticas MVC em Node.js**, veja este vídeo que vai te ajudar a organizar seu código de forma profissional:  
 https://www.youtube.com/watch?v=bGN_xNc4A1k&t=3s
 
----
-
-## Resumo dos principais pontos para focar:
-
-- Corrigir o uso do `.first()` e desestruturação nos repositories para evitar erros ao buscar registros (ex: `encontrar` em agentesRepository).
-- Garantir que os controllers verifiquem se o registro existe (não `undefined`) e retornem 404 quando não encontrar.
-- Reativar a validação de campos extras nos métodos PATCH para evitar payloads inválidos.
-- Padronizar o retorno dos métodos de atualização (`update`) para sempre retornar o objeto atualizado, e tratar `null` no controller.
-- Continuar protegendo as rotas com middleware de autenticação (você já acertou essa parte!).
-- Para melhorar nota, implemente os filtros e endpoint `/usuarios/me` para dados do usuário autenticado.
+- Para reforçar os conceitos de **autenticação com JWT e bcrypt**, que você já fez bem, mas para consolidar:  
+https://www.youtube.com/watch?v=L04Ln97AwoY
 
 ---
 
-Bernardo, você já está no caminho certo! 🚀 Corrigindo esses detalhes no tratamento dos dados e validações, sua API vai funcionar perfeitamente para agentes e casos, e os testes vão passar.
+## 📝 Resumo rápido dos principais pontos para focar:
 
-Continue firme, cuidando da qualidade do código e validando bem as entradas, porque segurança e robustez são cruciais em sistemas reais.
+- [ ] Corrigir o tratamento de resultados `undefined` no repositório para evitar erros ao acessar propriedades.
+- [ ] Reativar validação de campos extras nos controllers para garantir payloads corretos e evitar erros 400.
+- [ ] Garantir que o retorno das funções de atualização e busca trate corretamente casos onde o registro não existe, retornando `null` e 404 no controller.
+- [ ] Validar formatos de datas e JSON para atender exatamente o esperado nos testes.
+- [ ] Implementar os endpoints bônus para melhorar sua nota e experiência (filtragens e `/usuarios/me`).
 
-Se precisar, volte aos vídeos recomendados para reforçar os conceitos. Estou aqui para ajudar no que precisar! 💪🔥
+---
 
-Um grande abraço e sucesso na jornada! 👊✨
+Bernardo, você está no caminho certo e já fez o mais difícil: implementar autenticação segura e proteger rotas! Agora é só ajustar esses detalhes para que sua API fique robusta e pronta para produção. Continue assim, aprendendo e evoluindo! 💪✨
+
+Se precisar, volte a estudar os recursos que recomendei para fortalecer seu conhecimento.
+
+Conte comigo nessa jornada! 🚀🧑‍💻
+
+Um grande abraço e boa codificação! 👏😄
 
 > Caso queira tirar uma dúvida específica, entre em contato com o Chapter no nosso [discord](https://discord.gg/DryuHVnz).
 
