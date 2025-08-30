@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const agentesController = require("../controllers/agentesController.js");
+const authMiddleware = require("../middlewares/authMiddleware.js");
 
 /**
  * @swagger
@@ -19,7 +20,7 @@ const agentesController = require("../controllers/agentesController.js");
  *       200:
  *         description: Lista de agentes retornada com sucesso
  */
-router.get("/", agentesController.listarAgentes);
+router.get("/", authMiddleware, agentesController.listarAgentes);
 
 /**
  * @swagger
@@ -40,7 +41,7 @@ router.get("/", agentesController.listarAgentes);
  *       404:
  *         description: Agente não encontrado
  */
-router.get("/:id", agentesController.encontrarAgente);
+router.get("/:id", authMiddleware, agentesController.encontrarAgente);
 
 /**
  * @swagger
@@ -58,7 +59,7 @@ router.get("/:id", agentesController.encontrarAgente);
  *       201:
  *         description: Agente criado
  */
-router.post("/", agentesController.adicionarAgente);
+router.post("/", authMiddleware, agentesController.adicionarAgente);
 
 /**
  * @swagger
@@ -88,7 +89,7 @@ router.post("/", agentesController.adicionarAgente);
  *         description: Agente não encontrado
  */
 
-router.put("/:id", agentesController.atualizarAgente);
+router.put("/:id", authMiddleware, agentesController.atualizarAgente);
 
 /**
  * @swagger
@@ -116,7 +117,7 @@ router.put("/:id", agentesController.atualizarAgente);
  *         description: Agente não encontrado
  */
 
-router.patch("/:id", agentesController.atualizarAgenteParcial);
+router.patch("/:id", authMiddleware, agentesController.atualizarAgenteParcial);
 
 /**
  * @swagger
@@ -136,6 +137,6 @@ router.patch("/:id", agentesController.atualizarAgenteParcial);
  *       404:
  *         description: Agente não encontrado
  */
-router.delete("/:id", agentesController.deletarAgente);
+router.delete("/:id", authMiddleware, agentesController.deletarAgente);
 
 module.exports = router;
