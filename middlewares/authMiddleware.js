@@ -10,7 +10,7 @@ function authMiddleware(req, res, next) {
     const token = cookieToken || headerToken;
 
     if (!token) {
-      return new ApiError("access_token não fornecido.", 401, { access_token: "access_token nao fornecido" });
+      return next(new ApiError("access_token não fornecido.", 401, { access_token: "access_token nao fornecido" }));
     }
 
     req.user = jwt.verify(token, process.env.JWT_SECRET);
