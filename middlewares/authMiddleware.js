@@ -9,17 +9,13 @@ function authMiddleware(req, res, next) {
     const token = cookieToken || headerToken;
 
     if (!token) {
-      return res.status(401).json({ status: 401, message: "Token Inválido" });
+      return res.status(401).json({ status: 401, message: "Token não fornecido" });
     }
 
-    req.user = jwt.verify(token, process.env.JWT_SECRET || "secret", (error, user) => {
-      if (error) {
-        return res.status(401).json({ status: 401, message: "Token Não fornecido" });
-      }
+    const usuario = (req.user = jwt.verify(token, process.env.JWT_SECRET || "secret"));
+    req.user = usuario;
 
-      req.user = user;
-      next();
-    });
+    next();
   } catch (erro) {
     return res.status(401).json({ status: 401, message: "Token Inválido" });
   }

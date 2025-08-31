@@ -83,7 +83,7 @@ async function logarUsuario(req, res) {
     }
 
     // Gera token
-    const token = jwt.sign({ id: usuario.id, email: usuario.email }, process.env.JWT_SECRET || "secret", { expiresIn: "1d" });
+    const token = jwt.sign({ id: usuario.id, nome: usuario.nome, email: usuario.email }, process.env.JWT_SECRET || "secret", { expiresIn: "1d" });
 
     res.cookie("access_token", token, { httpOnly: true, secure: false, sameSite: "strict" });
 
@@ -128,8 +128,18 @@ async function deslogarUsuario(req, res) {
 
 // ----- Mostrar informações do Usuário Logado -----
 async function exibirUsuario(req, res) {
-  const { id, nome, email, senha } = req.user;
-  const usuario = usuariosRepository.encontrar();
+  try {
+    const email = req.user.email;
+    const usuario = await usuariosRepository.encontrar(email);
+
+    if (!usuario) return res.status(404).json({ status: 404, message: "Usuário não encontrado" });
+
+    return res.status(200).json({ id: usuario.id, nome: usuario.nome, email: usuario.email });
+  } catch (error) {
+    console.log("Erro referente a: exibirUsuario\n");
+    console.log(error);
+    res.status(500).json({ status: 500, message: "Erro interno do servidor" });
+  }
 }
 
 // ----- Exports -----
