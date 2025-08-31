@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const agentesController = require("../controllers/agentesController.js");
+
 /**
  * @swagger
  * tags:
@@ -137,4 +138,5 @@ router.patch("/:id", agentesController.atualizarAgenteParcial);
  */
 router.delete("/:id", agentesController.deletarAgente);
 
+// ----- Exports -----
 module.exports = router;

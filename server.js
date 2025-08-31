@@ -1,12 +1,13 @@
 require("dotenv").config();
+const authMiddleware = require("./middlewares/authMiddleware.js");
+
 const express = require("express");
 const app = express();
-const authMiddleware = require("./middlewares/authMiddleware.js");
 const port = 3000;
 
+const authRoutes = require("./routes/authRoutes.js");
 const agentesRoutes = require("./routes/agentesRoutes.js");
 const casosRoutes = require("./routes/casosRoutes.js");
-const authRoutes = require("./routes/authRoutes.js");
 
 const setupSwagger = require("./docs/swagger.js");
 const { errorHandler } = require("./utils/errorHandler.js");

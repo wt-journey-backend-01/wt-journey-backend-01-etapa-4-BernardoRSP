@@ -135,4 +135,5 @@ router.patch("/:id", casosController.atualizarCasoParcial);
 
 router.delete("/:id", casosController.deletarCaso);
 
+// ----- Exports -----
 module.exports = router;

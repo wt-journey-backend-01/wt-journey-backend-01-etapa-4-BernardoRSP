@@ -14,7 +14,7 @@ async function listarCasos(req, res) {
   }
 }
 
-// Mostrar Caso Referente ao ID
+// ----- Mostrar Caso Referente ao ID -----
 async function encontrarCaso(req, res) {
   try {
     const { id } = req.params;
@@ -33,7 +33,7 @@ async function encontrarCaso(req, res) {
   }
 }
 
-// Adicionar Novo Caso
+// ----- Adicionar Novo Caso -----
 async function adicionarCaso(req, res) {
   try {
     const { titulo, descricao, status, agente_id } = req.body;
@@ -75,7 +75,7 @@ async function adicionarCaso(req, res) {
   }
 }
 
-// Atualizar Informações do Caso
+// ----- Atualizar Informações do Caso -----
 async function atualizarCaso(req, res) {
   try {
     const { id } = req.params;
@@ -125,7 +125,7 @@ async function atualizarCaso(req, res) {
   }
 }
 
-// Atualizar Informações Parciais Caso
+// ----- Atualizar Informações Parciais Caso -----
 async function atualizarCasoParcial(req, res) {
   try {
     const { id } = req.params;
@@ -183,7 +183,7 @@ async function atualizarCasoParcial(req, res) {
   }
 }
 
-// Deletar Caso
+// ----- Deletar Caso -----
 async function deletarCaso(req, res) {
   try {
     const { id } = req.params;
@@ -202,7 +202,7 @@ async function deletarCaso(req, res) {
   }
 }
 
-// Exports
+// ----- Exports -----
 module.exports = {
   listarCasos,
   encontrarCaso,

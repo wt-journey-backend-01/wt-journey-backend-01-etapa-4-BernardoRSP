@@ -2,7 +2,7 @@ const agentesRepository = require("../repositories/agentesRepository.js");
 const intPos = /^\d+$/; // Regex para aceitar número inteiro positivo
 const formatoData = /^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[12][0-9]|3[01])$/; // Regex para aceitar data no formato: YYYY-MM-DD
 
-// Mostrar Todos os Agentes
+// ----- Mostrar Todos os Agentes -----
 async function listarAgentes(req, res) {
   try {
     const agentes = await agentesRepository.listar();
@@ -15,7 +15,7 @@ async function listarAgentes(req, res) {
   }
 }
 
-// Mostrar Agente Referente ao ID
+// ----- Mostrar Agente Referente ao ID -----
 async function encontrarAgente(req, res) {
   try {
     const { id } = req.params;
@@ -34,7 +34,7 @@ async function encontrarAgente(req, res) {
   }
 }
 
-// Adicionar Novo Agente
+// ----- Adicionar Novo Agente -----
 async function adicionarAgente(req, res) {
   try {
     const { nome, dataDeIncorporacao, cargo } = req.body;
@@ -71,7 +71,7 @@ async function adicionarAgente(req, res) {
   }
 }
 
-// Atualizar Informações do Agente
+// ----- Atualizar Informações do Agente -----
 async function atualizarAgente(req, res) {
   try {
     const { id } = req.params;
@@ -122,7 +122,7 @@ async function atualizarAgente(req, res) {
   }
 }
 
-// Atualizar Informações Parciais do Agente
+// ----- Atualizar Informações Parciais do Agente -----
 async function atualizarAgenteParcial(req, res) {
   try {
     const { id } = req.params;
@@ -179,7 +179,7 @@ async function atualizarAgenteParcial(req, res) {
   }
 }
 
-// Deletar Agente
+// ----- Deletar Agente -----
 async function deletarAgente(req, res) {
   try {
     const { id } = req.params;
@@ -198,6 +198,7 @@ async function deletarAgente(req, res) {
   }
 }
 
+// ----- Exports -----
 module.exports = {
   listarAgentes,
   encontrarAgente,

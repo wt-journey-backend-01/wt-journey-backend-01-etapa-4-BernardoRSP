@@ -1,12 +1,12 @@
 const db = require("../db/db.js");
 
-// Mostrar Todos os Casos
+// ----- Mostrar Todos os Casos -----
 async function listar() {
   const listado = await db("casos");
   return listado;
 }
 
-// Mostrar Caso Referente ao ID
+// ----- Mostrar Caso Referente ao ID -----
 async function encontrar(id) {
   const encontrado = await db("casos")
     .where({ id: Number(id) })
@@ -14,13 +14,13 @@ async function encontrar(id) {
   return encontrado;
 }
 
-// Adicionar Novo Caso
+// ----- Adicionar Novo Caso -----
 async function adicionar(caso) {
   const adicionado = await db("casos").insert(caso).returning("*");
   return adicionado;
 }
 
-// Atualizar Informações do Caso
+// ----- Atualizar Informações do Caso -----
 async function atualizar(dadosAtualizados, id) {
   const atualizado = await db("casos")
     .where({ id: Number(id) })
@@ -29,7 +29,7 @@ async function atualizar(dadosAtualizados, id) {
   return atualizado;
 }
 
-// Deletar Caso
+// ----- Deletar Caso -----
 async function deletar(id) {
   const deletado = await db("casos")
     .where({ id: Number(id) })
@@ -37,6 +37,7 @@ async function deletar(id) {
   return deletado;
 }
 
+// ----- Exports -----
 module.exports = {
   listar,
   encontrar,

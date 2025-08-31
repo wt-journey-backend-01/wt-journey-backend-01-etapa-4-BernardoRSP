@@ -4,7 +4,7 @@ const usuariosRepository = require("../repositories/usuariosRepository.js");
 const intPos = /^\d+$/; // Regex para aceitar números inteiros positivos
 const testeSenha = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/; // Regex para validar senha (mínimo 8 caracteres, pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial)
 
-// Registrar um Usuário no Sistema
+// ----- Registrar um Usuário no Sistema -----
 async function registrarUsuario(req, res) {
   try {
     const { nome, email, senha } = req.body;
@@ -42,7 +42,7 @@ async function registrarUsuario(req, res) {
   }
 }
 
-// Logar um Usuário Cadastrado no Sistema
+// ----- Logar um Usuário Cadastrado no Sistema -----
 async function logarUsuario(req, res) {
   try {
     const { email, senha } = req.body;
@@ -94,7 +94,7 @@ async function logarUsuario(req, res) {
   }
 }
 
-// Deletar a Conta de um Usuário
+// ----- Deletar a Conta de um Usuário -----
 async function deletarUsuario(req, res) {
   try {
     const { id } = req.params;
@@ -114,7 +114,7 @@ async function deletarUsuario(req, res) {
   }
 }
 
-// Deslogar um Usuário Cadastrado no Sistema
+// ----- Deslogar um Usuário Cadastrado no Sistema -----
 async function deslogarUsuario(req, res) {
   try {
     req.user = undefined;
@@ -126,9 +126,17 @@ async function deslogarUsuario(req, res) {
   }
 }
 
+// ----- Mostrar informações do Usuário Logado -----
+async function exibirUsuario(req, res) {
+  const { id, nome, email, senha } = req.user;
+  const usuario = usuariosRepository.encontrar();
+}
+
+// ----- Exports -----
 module.exports = {
   registrarUsuario,
   logarUsuario,
   deletarUsuario,
   deslogarUsuario,
+  exibirUsuario,
 };
