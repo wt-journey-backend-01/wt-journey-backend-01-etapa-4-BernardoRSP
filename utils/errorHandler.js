@@ -3,6 +3,4 @@ function errorHandler(err, req, res, next) {
   res.status(status || 500).send({ message, status, errors });
 }
 
-module.exports = {
-  errorHandler,
-};
+module.exports = { errorHandler };

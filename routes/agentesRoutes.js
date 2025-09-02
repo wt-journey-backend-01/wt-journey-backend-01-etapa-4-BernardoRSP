@@ -87,7 +87,6 @@ router.post("/", agentesController.adicionarAgente);
  *       404:
  *         description: Agente não encontrado
  */
-
 router.put("/:id", agentesController.atualizarAgente);
 
 /**
@@ -115,7 +114,6 @@ router.put("/:id", agentesController.atualizarAgente);
  *       404:
  *         description: Agente não encontrado
  */
-
 router.patch("/:id", agentesController.atualizarAgenteParcial);
 
 /**

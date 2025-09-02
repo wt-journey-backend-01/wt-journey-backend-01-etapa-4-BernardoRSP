@@ -1,9 +1,12 @@
 require("dotenv").config();
+const cookieParser = require("cookie-parser");
 const authMiddleware = require("./middlewares/authMiddleware.js");
 
 const express = require("express");
 const app = express();
 const port = 3000;
+
+app.use(cookieParser());
 
 const authRoutes = require("./routes/authRoutes.js");
 const agentesRoutes = require("./routes/agentesRoutes.js");

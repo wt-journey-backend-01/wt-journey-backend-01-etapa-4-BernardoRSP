@@ -68,10 +68,7 @@ async function logarUsuario(req, res) {
     const usuario = await usuariosRepository.encontrar(email);
 
     if (!usuario) {
-      return res.status(401).json({
-        status: 401,
-        message: "Credenciais inválidas",
-      });
+      return res.status(401).json({ status: 401, message: "Credenciais inválidas" });
     }
     // Valida senha
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
@@ -84,10 +81,12 @@ async function logarUsuario(req, res) {
 
     // Gera token
     const token = jwt.sign({ id: usuario.id, nome: usuario.nome, email: usuario.email }, process.env.JWT_SECRET || "secret", { expiresIn: "1d" });
+    const refreshToken = jwt.sign({ email: usuario.email }, process.env.JWT_REFRESH_SECRET || "refreshsecret", { expiresIn: "7d" });
 
     res.cookie("access_token", token, { httpOnly: true, secure: false, sameSite: "strict" });
+    res.cookie("refresh_token", refreshToken, { httpOnly: true, secure: false, sameSite: "strict" });
 
-    return res.status(200).json({ access_token: token });
+    return res.status(200).json({ access_token: token, refresh_token: refreshToken });
   } catch (error) {
     console.error("Erro referente a: logarUsuario\n", error);
     res.status(500).json({ status: 500, message: "Erro interno do servidor" });
@@ -117,7 +116,10 @@ async function deletarUsuario(req, res) {
 // ----- Deslogar um Usuário Cadastrado no Sistema -----
 async function deslogarUsuario(req, res) {
   try {
-    req.user = undefined;
+    res.user = null;
+    res.clearCookie("access_token");
+    res.clearCookie("refresh_token");
+
     return res.status(204).end();
   } catch (error) {
     console.log("Erro referente a: deslogarUsuario\n");
@@ -142,6 +144,36 @@ async function exibirUsuario(req, res) {
   }
 }
 
+// ----- Aumentar a duração do Tempo de Login -----
+async function refreshToken(req, res) {
+  try {
+    const authHeader = req.headers["authorization"];
+    const cookieToken = req.cookies?.refresh_token;
+    const headerToken = authHeader && authHeader.split(" ")[1];
+    const refreshToken = cookieToken || headerToken;
+
+    if (!refreshToken) return res.status(401).json({ message: "Refresh token não fornecido" });
+
+    const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || "refreshsecret");
+
+    const usuario = await usuariosRepository.encontrar(payload.email);
+    if (!usuario) return res.status(401).json({ message: "Usuário inválido" });
+
+    const novoAccessToken = jwt.sign({ id: usuario.id, nome: usuario.nome, email: usuario.email }, process.env.JWT_SECRET || "secret", { expiresIn: "15m" });
+
+    res.cookie("access_token", novoAccessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+    });
+
+    return res.json({ access_token: novoAccessToken });
+  } catch (erro) {
+    console.error("Erro ao atualizar access token:", erro);
+    return res.status(401).json({ message: "Refresh token inválido ou expirado" });
+  }
+}
+
 // ----- Exports -----
 module.exports = {
   registrarUsuario,
@@ -149,4 +181,5 @@ module.exports = {
   deletarUsuario,
   deslogarUsuario,
   exibirUsuario,
+  refreshToken,
 };
