@@ -147,7 +147,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 2. O usuário faz login em ```/auth/login``` e recebe um JWT.
 3. O usuário utiliza esse JWT na aba **Authorization → Bearer Token** do Postman (ou envia manualmente no header ```Authorization: Bearer <token>```).
 4. O usuário pode realizar logout em ```/auth/logout```.
-5. O token possui tempo de expiração. Após expirar, o usuário precisa fazer login novamente (ou usar refresh token, se implementado).
+5. O token possui tempo de expiração. Após expirar, o usuário precisa fazer login novamente (ou usar refresh token).
 
 ## ⚙️Variáveis de Ambiente Importantes ##
 No arquivo ```.env```, defina a chave secreta usada para assinar os tokens:
